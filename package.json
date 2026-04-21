@@ -1,0 +1,13 @@
+{
+  "name": "gold-price-tracker",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "cd backend && yarn install && cd ../frontend && yarn install",
+    "build": "cd frontend && yarn build",
+    "start": "cd backend && node src/app.js"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
