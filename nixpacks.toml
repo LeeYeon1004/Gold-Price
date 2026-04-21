@@ -1,14 +1,14 @@
 [phases.setup]
-nixPkgs = ["nodejs_20"]
+nixPkgs = ["nodejs_20", "python3", "gnumake", "gcc"]
 
 [phases.install]
 cmds = [
-  "cd backend && yarn install --frozen-lockfile",
-  "cd frontend && yarn install --frozen-lockfile"
+  "npm --prefix backend install",
+  "npm --prefix frontend install"
 ]
 
 [phases.build]
-cmds = ["cd frontend && yarn build"]
+cmds = ["npm --prefix frontend run build"]
 
 [start]
-cmd = "FRONTEND_DIST=/app/frontend/dist/frontend/browser node /app/backend/src/app.js"
+cmd = "FRONTEND_DIST=frontend/dist/frontend/browser node backend/src/app.js"
