@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html { scroll-behavior: smooth; }
+  body {
+    @apply bg-gray-950 text-gray-100 font-sans antialiased;
+    min-height: 100vh;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl;
+  }
+  .card-sm {
+    @apply bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg;
+  }
+  .btn-primary {
+    @apply bg-amber-500 hover:bg-amber-400 active:bg-amber-600
+           text-gray-950 font-semibold rounded-xl px-5 py-2.5
+           transition-all duration-200 ease-in-out
+           disabled:opacity-50 disabled:cursor-not-allowed
+           focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-gray-900;
+  }
+  .btn-secondary {
+    @apply bg-gray-800 hover:bg-gray-700 text-gray-100 font-medium rounded-xl px-5 py-2.5
+           border border-gray-700 transition-all duration-200 ease-in-out
+           focus:outline-none focus:ring-2 focus:ring-gray-600;
+  }
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-500 text-white font-medium rounded-xl px-4 py-2
+           transition-all duration-200 ease-in-out;
+  }
+  .input-field {
+    @apply bg-gray-800 border border-gray-700 text-gray-100 rounded-xl px-4 py-2.5
+           focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent
+           placeholder-gray-500 transition-all duration-200 w-full;
+  }
+  .badge-up {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-emerald-500/20 text-emerald-400;
+  }
+  .badge-down {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-red-500/20 text-red-400;
+  }
+  .badge-neutral {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-gray-700/50 text-gray-400;
+  }
+}
+
+/* Highcharts transparent background */
+.highcharts-background { fill: transparent !important; }
+.highcharts-plot-background { fill: transparent !important; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #111827; }
+::-webkit-scrollbar-thumb { background: #374151; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+
+/* Animations */
+.animate-fade-in { animation: fadeIn 0.4s ease-in-out; }
+.animate-slide-up { animation: slideUp 0.4s ease-out; }
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(16px); opacity: 0; }
+  to   { transform: translateY(0);    opacity: 1; }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
