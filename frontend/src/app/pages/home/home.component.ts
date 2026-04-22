@@ -38,21 +38,21 @@ import { GoldChartComponent } from '../../components/chart/gold-chart.component'
           <div class="card-sm animate-slide-up">
             <p class="text-xs text-slate-500 uppercase tracking-wider">SJC Sell</p>
             <p class="text-xl font-bold text-blue-700 tabular-nums mt-1">
-              {{ sjcSell() / 1_000_000 | number:'1.2-2' }}M
+              {{ sjcSell() / 1_000_000 | number:'1.0-3' }}M
             </p>
             <p class="text-xs text-slate-400 mt-0.5">VND/tael</p>
           </div>
           <div class="card-sm animate-slide-up" style="animation-delay:0.05s">
             <p class="text-xs text-slate-500 uppercase tracking-wider">SJC Buy</p>
             <p class="text-xl font-bold text-emerald-700 tabular-nums mt-1">
-              {{ sjcBuy() / 1_000_000 | number:'1.2-2' }}M
+              {{ sjcBuy() / 1_000_000 | number:'1.0-3' }}M
             </p>
             <p class="text-xs text-slate-400 mt-0.5">VND/tael</p>
           </div>
           <div class="card-sm animate-slide-up" style="animation-delay:0.1s">
             <p class="text-xs text-slate-500 uppercase tracking-wider">Spread</p>
             <p class="text-xl font-bold text-slate-700 tabular-nums mt-1">
-              {{ (sjcSell() - sjcBuy()) / 1_000_000 | number:'1.2-2' }}M
+              {{ (sjcSell() - sjcBuy()) / 1_000_000 | number:'1.0-3' }}M
             </p>
             <p class="text-xs text-slate-400 mt-0.5">buy/sell</p>
           </div>

@@ -42,7 +42,7 @@ import { GoldRate } from '../../models/gold.model';
                 <td class="py-3.5 text-right">
                   @if (rate.buy_price && rate.buy_price > 1) {
                   <span class="text-emerald-700 font-semibold tabular-nums">
-                    {{ rate.buy_price | number:'1.0-0' }}
+                    {{ rate.buy_price | number:'1.0-3' }}
                   </span>
                   <div class="text-xs text-slate-400">VND</div>
                 } @else {
@@ -52,7 +52,7 @@ import { GoldRate } from '../../models/gold.model';
                 <td class="py-3.5 text-right">
                   @if (rate.sell_price && rate.sell_price > 1) {
                   <span class="text-blue-700 font-semibold tabular-nums">
-                    {{ rate.sell_price | number:'1.0-0' }}
+                    {{ rate.sell_price | number:'1.0-3' }}
                   </span>
                   <div class="text-xs text-slate-400">VND</div>
                 } @else {
@@ -62,7 +62,7 @@ import { GoldRate } from '../../models/gold.model';
                 <td class="py-3.5 text-right pr-2">
                   @if (rate.sell_price > 1 && rate.buy_price > 1) {
                   <span class="text-slate-600 text-sm tabular-nums">
-                    {{ (rate.sell_price - rate.buy_price) | number:'1.0-0' }}
+                    {{ (rate.sell_price - rate.buy_price) | number:'1.0-3' }}
                   </span>
                 } @else {
                   <span class="text-slate-400">—</span>

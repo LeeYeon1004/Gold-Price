@@ -103,7 +103,10 @@ export class GoldChartComponent implements OnChanges {
         title: { text: undefined },
         labels: {
           style: { color: '#6b7280', fontSize: '11px' },
-          formatter() { return ((this.value as number) / 1_000_000).toFixed(1) + 'M'; }
+          formatter() { 
+            const val = (this.value as number) / 1_000_000;
+            return (+val.toFixed(3)) + 'M'; 
+          }
         },
         gridLineColor: '#e2e8f0',
       },
@@ -120,7 +123,7 @@ export class GoldChartComponent implements OnChanges {
           const pts = this.points ?? [];
           let s = `<b>${this.x}</b><br/>`;
           for (const p of pts) {
-            const val = (((p.y as number) ?? 0) / 1_000_000).toFixed(2);
+            const val = +(((p.y as number) ?? 0) / 1_000_000).toFixed(3);
             s += `<span style="color:${p.color}">●</span> ${p.series.name}: <b>${val}M đ</b><br/>`;
           }
           return s;

@@ -67,7 +67,7 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
               }
               <p class="text-xs text-slate-500 uppercase tracking-wider">Total Cost</p>
               <p class="text-lg font-bold text-slate-800 tabular-nums mt-1">
-                {{ s.total_cost / 1_000_000 | number:'1.0-0' }}M
+                {{ s.total_cost / 1_000_000 | number:'1.0-3' }}M
               </p>
             </div>
             <div class="card-sm animate-slide-up relative overflow-hidden border-2" 
@@ -81,7 +81,7 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
               }
               <p class="text-xs text-slate-500 uppercase tracking-wider">Current Value</p>
               <p class="text-lg font-bold text-blue-700 tabular-nums mt-1">
-                {{ s.total_value / 1_000_000 | number:'1.0-0' }}M
+                {{ s.total_value / 1_000_000 | number:'1.0-3' }}M
               </p>
             </div>
             <div class="card-sm animate-slide-up relative overflow-hidden border-2" 
@@ -96,7 +96,7 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
               <p class="text-xs text-slate-500 uppercase tracking-wider">Profit / Loss</p>
               <p class="text-lg font-bold tabular-nums mt-1"
                  [class]="s.total_pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                {{ s.total_pnl >= 0 ? '+' : '' }}{{ s.total_pnl / 1_000_000 | number:'1.0-0' }}M
+                {{ s.total_pnl >= 0 ? '+' : '' }}{{ s.total_pnl / 1_000_000 | number:'1.0-3' }}M
               </p>
             </div>
             <div class="card-sm animate-slide-up relative overflow-hidden border-2" 
@@ -151,7 +151,7 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
                   placeholder="e.g., 87000000" class="input-field text-sm" required/>
                 @if (form.buy_price) {
                   <p class="text-xs text-blue-700 mt-1">
-                    = {{ form.buy_price / 1_000_000 | number:'1.2-2' }}M đ
+                    = {{ form.buy_price / 1_000_000 | number:'1.0-3' }}M đ
                   </p>
                 }
               </div>
@@ -173,7 +173,7 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
                   <div class="flex justify-between">
                     <span>Total cost basis:</span>
                     <span class="text-slate-800 font-semibold">
-                      {{ (form.quantity * form.buy_price) / 1_000_000 | number:'1.2-2' }}M đ
+                      {{ (form.quantity * form.buy_price) / 1_000_000 | number:'1.0-3' }}M đ
                     </span>
                   </div>
                 </div>
@@ -249,24 +249,24 @@ export class FlatpickrDirective implements OnInit, OnDestroy {
                         <div class="mt-2 grid grid-cols-2 sm:grid-cols-3 gap-x-4 gap-y-1 text-xs">
                           <div>
                             <span class="text-slate-500">Buy Price: </span>
-                            <span class="text-slate-700 tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.2-2' }}M</span>
+                            <span class="text-slate-700 tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</span>
                           </div>
                           <div>
                             <span class="text-slate-500">Current: </span>
-                            <span class="text-blue-700 tabular-nums">{{ item.current_price / 1_000_000 | number:'1.2-2' }}M</span>
+                            <span class="text-blue-700 tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</span>
                           </div>
                           <div>
                             <span class="text-slate-500">Cost: </span>
-                            <span class="text-slate-700 tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-0' }}M</span>
+                            <span class="text-slate-700 tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-3' }}M</span>
                           </div>
                           <div>
                             <span class="text-slate-500">Value: </span>
-                            <span class="text-blue-700 tabular-nums">{{ item.current_value / 1_000_000 | number:'1.0-0' }}M</span>
+                            <span class="text-blue-700 tabular-nums">{{ item.current_value / 1_000_000 | number:'1.0-3' }}M</span>
                           </div>
                           <div class="col-span-2">
                             <span class="text-slate-500">P&L: </span>
                             <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                              {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.2-2' }}M
+                              {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.0-3' }}M
                               ({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.2-2' }}%)
                             </span>
                           </div>

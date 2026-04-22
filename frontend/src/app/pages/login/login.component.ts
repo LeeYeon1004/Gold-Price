@@ -108,6 +108,8 @@ export class LoginComponent {
     this.isRegister.set(register);
     this.error.set('');
     this.submitted.set(false);
+    this.username = '';
+    this.password = '';
   }
 
   submit() {
