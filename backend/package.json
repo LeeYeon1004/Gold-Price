@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "rebuild-sqlite": "npm rebuild better-sqlite3"
+    "rebuild-sqlite": "npm rebuild better-sqlite3",
+    "sync-db": "node scripts/sync-db.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

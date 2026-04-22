@@ -75,6 +75,8 @@ async function queryOne(text, params = []) {
 async function execute(text, params = []) {
   if (isPg) {
     const result = await getPool().query(text, params);
+    // Trigger background sync on write (non-blocking)
+    syncToSQLite().catch(() => {});
     return { insertId: result.rows[0]?.id || null, rowCount: result.rowCount };
   }
   const result = getSqlite().prepare(toSqlite(stripReturning(text))).run(...params);
@@ -166,10 +168,58 @@ async function initSchema() {
 
   if (isPg) {
     await getPool().query(pgSchema);
+    // Always initialize SQLite too for backup
+    try {
+      getSqlite().exec(sqliteSchema);
+    } catch (err) {
+      console.warn('[DB] SQLite backup initialization failed (normal on some cloud environments):', err.message);
+    }
   } else {
     getSqlite().exec(sqliteSchema);
   }
-  console.log(`[DB] Schema initialized (${isPg ? 'PostgreSQL' : 'SQLite'})`);
+  console.log(`[DB] Schema initialized (${isPg ? 'PostgreSQL + SQLite Backup' : 'SQLite'})`);
 }
 
-module.exports = { query, queryOne, execute, initSchema, isPg };
+/** 
+ * Synchronize all data from PostgreSQL to SQLite. 
+ * Use this to keep the local backup up-to-date.
+ */
+async function syncToSQLite() {
+  if (!isPg) return;
+  try {
+    const sqlite = getSqlite();
+    const tables = ['users', 'gold_prices', 'gold_chart_cache', 'portfolio'];
+    
+    for (const table of tables) {
+      const rows = await query(`SELECT * FROM ${table}`);
+      if (rows.length === 0) continue;
+
+      // Clear local table
+      sqlite.prepare(`DELETE FROM ${table}`).run();
+
+      // Insert all rows
+      const cols = Object.keys(rows[0]);
+      const placeholders = cols.map(() => '?').join(', ');
+      const sql = `INSERT INTO ${table} (${cols.join(', ')}) VALUES (${placeholders})`;
+      const stmt = sqlite.prepare(sql);
+      
+      const transaction = sqlite.transaction((data) => {
+        for (const row of data) {
+          const values = cols.map(c => {
+            const v = row[c];
+            if (v instanceof Date) return v.toISOString();
+            if (v && typeof v === 'object') return JSON.stringify(v);
+            return v;
+          });
+          stmt.run(...values);
+        }
+      });
+      transaction(rows);
+    }
+    // console.log('[DB] Backup synced to SQLite');
+  } catch (err) {
+    console.error('[DB] Sync to SQLite failed:', err.message);
+  }
+}
+
+module.exports = { query, queryOne, execute, initSchema, syncToSQLite, isPg };
