@@ -3,13 +3,13 @@ nixPkgs = ["nodejs_20", "python3", "gnumake", "gcc"]
 
 [phases.install]
 cmds = [
-  "npm --prefix backend install",
-  "npm --prefix backend rebuild better-sqlite3",
-  "npm --prefix frontend install"
+  "yarn --cwd backend install",
+  "yarn --cwd backend run rebuild-sqlite",
+  "yarn --cwd frontend install"
 ]
 
 [phases.build]
-cmds = ["npm --prefix frontend run build"]
+cmds = ["yarn --cwd frontend build"]
 
 [start]
 cmd = "FRONTEND_DIST=frontend/dist/frontend/browser node backend/src/app.js"
