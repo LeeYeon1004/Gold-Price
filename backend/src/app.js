@@ -1,13 +1,14 @@
 const express = require('express');
-const cors = require('cors');
-const path = require('path');
+const cors    = require('cors');
+const path    = require('path');
 
-const authRoutes = require('./routes/auth');
-const goldRoutes = require('./routes/gold');
+const authRoutes      = require('./routes/auth');
+const goldRoutes      = require('./routes/gold');
 const portfolioRoutes = require('./routes/portfolio');
 const { startScheduler } = require('./services/scheduler');
+const { initSchema }     = require('./db/database');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({
@@ -17,8 +18,8 @@ app.use(cors({
 app.use(express.json());
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/gold', goldRoutes);
+app.use('/api/auth',      authRoutes);
+app.use('/api/gold',      goldRoutes);
 app.use('/api/portfolio', portfolioRoutes);
 
 // Serve Angular frontend in production
@@ -33,7 +34,18 @@ if (require('fs').existsSync(distPath)) {
   });
 }
 
-app.listen(PORT, () => {
-  console.log(`Gold Price server running on port ${PORT}`);
-  startScheduler();
-});
+// Bootstrap: init DB schema then start server
+async function main() {
+  try {
+    await initSchema();
+    app.listen(PORT, () => {
+      console.log(`Gold Price server running on port ${PORT}`);
+      startScheduler();
+    });
+  } catch (err) {
+    console.error('[Startup] Failed to initialize DB schema:', err.message);
+    process.exit(1);
+  }
+}
+
+main();

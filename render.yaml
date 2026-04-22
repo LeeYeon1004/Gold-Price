@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: gold-tracker-api
+    runtime: node
+    plan: free
+    buildCommand: "npm --prefix backend install && npm --prefix frontend install && npm --prefix frontend run build"
+    startCommand: "node backend/src/app.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: FRONTEND_DIST
+        value: frontend/dist/frontend/browser
+      - key: DATABASE_URL
+        fromDatabase:
+          name: gold-tracker-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+
+databases:
+  - name: gold-tracker-db
+    plan: free
+    databaseName: goldtracker
+    user: goldtracker

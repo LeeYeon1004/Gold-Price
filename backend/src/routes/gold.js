@@ -1,41 +1,40 @@
 const express = require('express');
 const { fetchAndCacheRates, fetchAndCacheChart, getLatestRates, getCachedChart, getHistoricalRates } = require('../services/goldService');
+const { queryOne } = require('../db/database');
 
 const router = express.Router();
 
 // GET /api/gold/rates — latest cached rates, refresh if stale > 3h
 router.get('/rates', async (req, res) => {
   try {
-    const db = require('../db/database').getDb();
-    const latest = db.prepare(`
-      SELECT MAX(fetched_at) as last FROM gold_prices
-    `).get();
-
+    const latest = await queryOne('SELECT MAX(fetched_at) AS last FROM gold_prices');
     const staleMs = latest?.last
-      ? Date.now() - new Date(latest.last + 'Z').getTime()
+      ? Date.now() - new Date(latest.last).getTime()
       : Infinity;
 
-    let rates = getLatestRates();
+    let rates = await getLatestRates();
     if (!rates.length || staleMs > 3 * 60 * 60 * 1000) {
       await fetchAndCacheRates();
-      rates = getLatestRates();
+      rates = await getLatestRates();
     }
     res.json({ data: rates, fetched_at: latest?.last || null });
   } catch (err) {
-    // Try returning cached data even on error
-    const rates = getLatestRates();
-    if (rates.length) return res.json({ data: rates, cached: true });
+    // Return cached data even on external API error
+    try {
+      const rates = await getLatestRates();
+      if (rates.length) return res.json({ data: rates, cached: true });
+    } catch (_) {}
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/gold/chart?code=SJC — historical chart data
+// GET /api/gold/chart?code=SJC9999 — historical chart data
 router.get('/chart', async (req, res) => {
   const { code } = req.query;
   try {
-    let cached = getCachedChart(code || 'ALL');
+    const cached  = await getCachedChart(code || 'ALL');
     const staleMs = cached?.fetched_at
-      ? Date.now() - new Date(cached.fetched_at + 'Z').getTime()
+      ? Date.now() - new Date(cached.fetched_at).getTime()
       : Infinity;
 
     if (!cached || staleMs > 3 * 60 * 60 * 1000) {
@@ -44,17 +43,23 @@ router.get('/chart', async (req, res) => {
     }
     res.json({ data: JSON.parse(cached.data) });
   } catch (err) {
-    const cached = getCachedChart(code || 'ALL');
-    if (cached) return res.json({ data: JSON.parse(cached.data), cached: true });
+    try {
+      const cached = await getCachedChart(code || 'ALL');
+      if (cached) return res.json({ data: JSON.parse(cached.data), cached: true });
+    } catch (_) {}
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET /api/gold/history?code=SJC&days=30 — local historical prices
-router.get('/history', (req, res) => {
-  const { code = 'SJC', days = 30 } = req.query;
-  const data = getHistoricalRates(code, parseInt(days));
-  res.json({ data });
+// GET /api/gold/history?code=SJC9999&days=30 — local historical prices
+router.get('/history', async (req, res) => {
+  const { code = 'SJC9999', days = 30 } = req.query;
+  try {
+    const data = await getHistoricalRates(code, parseInt(days));
+    res.json({ data });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // POST /api/gold/refresh — manual refresh trigger

@@ -8,13 +8,16 @@
     "dev": "nodemon src/app.js"
   },
   "dependencies": {
-    "better-sqlite3": "^9.4.3",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
     "node-cron": "^3.0.3",
-    "node-fetch": "^2.7.0"
+    "node-fetch": "^2.7.0",
+    "pg": "^8.20.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^9.4.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"
