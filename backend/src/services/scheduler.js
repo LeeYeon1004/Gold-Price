@@ -1,7 +1,7 @@
 const cron = require('node-cron');
 const { fetchAndCacheRates, fetchAndCacheChart } = require('./goldService');
 
-const DEFAULT_CODES = ['SJC', 'BTMH', 'PNJ', 'DOJI'];
+const DEFAULT_CODES = ['KHS', 'SJC9999', 'BT24K', 'KGB'];
 
 async function runFetch() {
   console.log(`[Scheduler] Running gold price fetch at ${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}`);
@@ -9,7 +9,6 @@ async function runFetch() {
   for (const code of DEFAULT_CODES) {
     try { await fetchAndCacheChart(code); } catch (_) {}
   }
-  try { await fetchAndCacheChart(null); } catch (_) {}
 }
 
 function startScheduler() {

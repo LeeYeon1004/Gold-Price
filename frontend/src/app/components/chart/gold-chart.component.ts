@@ -35,10 +35,10 @@ type Period = '1w' | '1m' | '3m' | '6m';
           class="animate-fade-in">
         </highcharts-chart>
       } @else {
-        <div class="h-72 flex items-center justify-center text-gray-500">
+        <div class="h-72 flex items-center justify-center text-slate-500">
           <div class="text-center">
             <div class="text-3xl mb-2">📈</div>
-            <p class="text-sm">Không có dữ liệu cho kỳ này</p>
+            <p class="text-sm">No data for this period</p>
           </div>
         </div>
       }
@@ -54,10 +54,10 @@ export class GoldChartComponent implements OnChanges {
   hasData = false;
 
   periods = [
-    { value: '1w' as Period, label: '1 tuần' },
-    { value: '1m' as Period, label: '1 tháng' },
-    { value: '3m' as Period, label: '3 tháng' },
-    { value: '6m' as Period, label: '6 tháng' },
+    { value: '1w' as Period, label: '1W' },
+    { value: '1m' as Period, label: '1M' },
+    { value: '3m' as Period, label: '3M' },
+    { value: '6m' as Period, label: '6M' },
   ];
 
   ngOnChanges(changes: SimpleChanges) {
@@ -96,8 +96,8 @@ export class GoldChartComponent implements OnChanges {
         categories,
         tickInterval: Math.max(1, Math.floor(filtered.length / 6)),
         labels: { style: { color: '#6b7280', fontSize: '11px' } },
-        lineColor: '#374151',
-        tickColor: '#374151',
+        lineColor: '#cbd5e1',
+        tickColor: '#cbd5e1',
       },
       yAxis: {
         title: { text: undefined },
@@ -105,17 +105,17 @@ export class GoldChartComponent implements OnChanges {
           style: { color: '#6b7280', fontSize: '11px' },
           formatter() { return ((this.value as number) / 1_000_000).toFixed(1) + 'M'; }
         },
-        gridLineColor: '#1f2937',
+        gridLineColor: '#e2e8f0',
       },
       legend: {
         itemStyle: { color: '#9ca3af', fontWeight: '500', fontSize: '12px' },
-        itemHoverStyle: { color: '#f3f4f6' },
+        itemHoverStyle: { color: '#0f172a' },
       },
       tooltip: {
         shared: true,
-        backgroundColor: '#111827',
-        borderColor: '#374151',
-        style: { color: '#f3f4f6', fontSize: '12px' },
+        backgroundColor: '#ffffff',
+        borderColor: '#e2e8f0',
+        style: { color: '#1e293b', fontSize: '12px' },
         formatter() {
           const pts = this.points ?? [];
           let s = `<b>${this.x}</b><br/>`;
@@ -136,22 +136,22 @@ export class GoldChartComponent implements OnChanges {
       series: [
         {
           type: 'area',
-          name: 'Mua vào',
+          name: 'Buy',
           data: buyData,
-          color: '#10b981',
+          color: '#047857',
           fillColor: {
             linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [[0, 'rgba(16,185,129,0.15)'], [1, 'rgba(16,185,129,0)']]
+            stops: [[0, 'rgba(4,120,87,0.15)'], [1, 'rgba(4,120,87,0)']]
           },
         },
         {
           type: 'area',
-          name: 'Bán ra',
+          name: 'Sell',
           data: sellData,
-          color: '#f59e0b',
+          color: '#1d4ed8',
           fillColor: {
             linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [[0, 'rgba(245,158,11,0.15)'], [1, 'rgba(245,158,11,0)']]
+            stops: [[0, 'rgba(29,78,216,0.15)'], [1, 'rgba(29,78,216,0)']]
           },
         },
       ],

@@ -18,7 +18,8 @@ router.get('/', (req, res) => {
   for (const r of rates) rateMap[r.code] = r.sell_price;
 
   const enriched = items.map(item => {
-    const currentPrice = rateMap[item.code] || rateMap['SJC'] || 0;
+    // Try exact match, then SJC9999 fallback, then first available rate, then 0
+    const currentPrice = rateMap[item.code] || rateMap['SJC9999'] || (rates.length > 0 ? rates[0].sell_price : 0);
     const costBasis = item.quantity * item.buy_price;
     const currentValue = item.quantity * currentPrice;
     const pnl = currentValue - costBasis;

@@ -1,4 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import "flatpickr/dist/flatpickr.min.css";
 
 @tailwind base;
 @tailwind components;
@@ -7,17 +8,17 @@
 @layer base {
   html { scroll-behavior: smooth; }
   body {
-    @apply bg-gray-950 text-gray-100 font-sans antialiased;
+    @apply bg-slate-50 text-slate-900 font-sans antialiased;
     min-height: 100vh;
   }
 }
 
 @layer components {
   .card {
-    @apply bg-gray-900 border border-gray-800 rounded-2xl p-5 shadow-xl;
+    @apply bg-white border border-slate-200 rounded-2xl p-5 shadow-xl;
   }
   .card-sm {
-    @apply bg-gray-900 border border-gray-800 rounded-xl p-4 shadow-lg;
+    @apply bg-white border border-slate-200 rounded-xl p-4 shadow-lg;
   }
   .btn-primary {
     @apply bg-amber-500 hover:bg-amber-400 active:bg-amber-600
@@ -27,8 +28,8 @@
            focus:outline-none focus:ring-2 focus:ring-amber-400 focus:ring-offset-2 focus:ring-offset-gray-900;
   }
   .btn-secondary {
-    @apply bg-gray-800 hover:bg-gray-700 text-gray-100 font-medium rounded-xl px-5 py-2.5
-           border border-gray-700 transition-all duration-200 ease-in-out
+    @apply bg-slate-100 hover:bg-gray-700 text-slate-900 font-medium rounded-xl px-5 py-2.5
+           border border-slate-300 transition-all duration-200 ease-in-out
            focus:outline-none focus:ring-2 focus:ring-gray-600;
   }
   .btn-danger {
@@ -36,21 +37,21 @@
            transition-all duration-200 ease-in-out;
   }
   .input-field {
-    @apply bg-gray-800 border border-gray-700 text-gray-100 rounded-xl px-4 py-2.5
+    @apply bg-slate-100 border border-slate-300 text-slate-900 rounded-xl px-4 py-2.5
            focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent
            placeholder-gray-500 transition-all duration-200 w-full;
   }
   .badge-up {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
-           bg-emerald-500/20 text-emerald-400;
+           bg-emerald-100 text-emerald-600;
   }
   .badge-down {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
-           bg-red-500/20 text-red-400;
+           bg-red-100 text-red-600;
   }
   .badge-neutral {
     @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
-           bg-gray-700/50 text-gray-400;
+           bg-gray-700/50 text-slate-600;
   }
 }
 
@@ -60,9 +61,9 @@
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #111827; }
-::-webkit-scrollbar-thumb { background: #374151; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #4b5563; }
+::-webkit-scrollbar-track { background: #f8fafc; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* Animations */
 .animate-fade-in { animation: fadeIn 0.4s ease-in-out; }
@@ -79,7 +80,7 @@
 }
 
 .shimmer {
-  background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }

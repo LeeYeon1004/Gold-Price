@@ -7,7 +7,7 @@ import { NavbarComponent } from './components/layout/navbar.component';
   standalone: true,
   imports: [RouterOutlet, NavbarComponent],
   template: `
-    <div class="min-h-screen bg-gray-950">
+    <div class="min-h-screen bg-slate-50">
       <app-navbar/>
       <main>
         <router-outlet/>

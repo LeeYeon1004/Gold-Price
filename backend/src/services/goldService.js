@@ -1,40 +1,41 @@
 const fetch = require('node-fetch');
+const https = require('https');
 const { getDb } = require('../db/database');
+
+// baotinmanhhai.vn dùng intermediate cert không được Node.js trust mặc định
+const httpsAgent = new https.Agent({ rejectUnauthorized: false });
 
 const GRAPHQL_URL = 'https://baotinmanhhai.vn/api/graphql';
 
 const GOLD_RATES_QUERY = `
   query {
     goldRates {
-      name
-      code
-      buy_price
-      sell_price
-      unit
-      vendor_name
-      trend
-      last_updated
-      sparkline_data
+      items {
+        name
+        code
+        buy_price
+        sell_price
+        unit
+        vendor_name
+        trend
+        last_updated
+      }
     }
   }
 `;
 
-const GOLD_CHART_QUERY = `
-  query GoldChart($code: String) {
-    goldChartData(code: $code) {
-      data_points {
-        date
-        buy
-        sell
-      }
-      default_product
-      product_options {
-        value
-        label
+function buildChartQuery(code) {
+  const targetCode = code || 'SJC9999';
+  return `
+    query {
+      goldChartData(code: "${targetCode}") {
+        data_points { date buy sell }
+        default_product
+        product_options { value label }
       }
     }
-  }
-`;
+  `;
+}
 
 async function fetchFromGraphQL(query, variables = {}) {
   const res = await fetch(GRAPHQL_URL, {
@@ -46,6 +47,7 @@ async function fetchFromGraphQL(query, variables = {}) {
       'Referer': 'https://baotinmanhhai.vn/vi/bang-gia-vang',
     },
     body: JSON.stringify({ query, variables }),
+    agent: httpsAgent,
   });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const json = await res.json();
@@ -56,7 +58,7 @@ async function fetchFromGraphQL(query, variables = {}) {
 async function fetchAndCacheRates() {
   try {
     const data = await fetchFromGraphQL(GOLD_RATES_QUERY);
-    const rates = data.goldRates;
+    const rates = data.goldRates?.items;
     if (!rates || !rates.length) return;
 
     const db = getDb();
@@ -89,7 +91,7 @@ async function fetchAndCacheRates() {
 
 async function fetchAndCacheChart(code) {
   try {
-    const data = await fetchFromGraphQL(GOLD_CHART_QUERY, { code });
+    const data = await fetchFromGraphQL(buildChartQuery(code));
     const chartData = data.goldChartData;
     if (!chartData) return null;
 
