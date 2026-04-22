@@ -4,6 +4,7 @@ nixPkgs = ["nodejs_20", "python3", "gnumake", "gcc"]
 [phases.install]
 cmds = [
   "npm --prefix backend install",
+  "npm --prefix backend rebuild better-sqlite3",
   "npm --prefix frontend install"
 ]
 

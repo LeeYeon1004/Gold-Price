@@ -1,7 +1,12 @@
 const Database = require('better-sqlite3');
 const path = require('path');
+const fs = require('fs');
 
-const DB_PATH = path.join(__dirname, '../../data/gold.db');
+// Support custom DB path via env var (useful for Railway persistent volume)
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, '../../data/gold.db');
+
+// Ensure the data directory exists before opening DB
+fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
 
 let db;
 
