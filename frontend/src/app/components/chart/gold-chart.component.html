@@ -1,0 +1,32 @@
+<div class="space-y-4">
+  <!-- Period selector -->
+  <div class="flex gap-2 flex-wrap">
+    @for (p of periods; track p.value) {
+      <button
+        (click)="setPeriod(p.value)"
+        [class]="activePeriod === p.value
+          ? 'btn-primary text-xs px-3 py-1.5'
+          : 'btn-secondary text-xs px-3 py-1.5'">
+        {{ p.label }}
+      </button>
+    }
+  </div>
+
+  <!-- Chart -->
+  @if (loading) {
+    <div class="shimmer h-72 rounded-xl"></div>
+  } @else if (hasData) {
+    <highcharts-chart
+      [options]="chartOptions"
+      style="width: 100%; height: 300px; display: block;"
+      class="animate-fade-in">
+    </highcharts-chart>
+  } @else {
+    <div class="h-72 flex items-center justify-center text-slate-500">
+      <div class="text-center">
+        <div class="text-3xl mb-2">📈</div>
+        <p class="text-sm">No data for this period</p>
+      </div>
+    </div>
+  }
+</div>

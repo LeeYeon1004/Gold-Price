@@ -91,6 +91,72 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// PUT /api/portfolio/:id/sell — sell all or partial quantity
+router.put('/:id/sell', async (req, res) => {
+  const { sell_price, sell_date, market_price_at_sell, sell_quantity } = req.body;
+  if (!sell_price || !sell_date || !sell_quantity)
+    return res.status(400).json({ error: 'sell_price, sell_date and sell_quantity are required' });
+
+  const qty = Number(sell_quantity);
+  if (!Number.isFinite(qty) || qty <= 0)
+    return res.status(400).json({ error: 'sell_quantity must be a positive number' });
+
+  try {
+    const item = await queryOne(
+      'SELECT * FROM portfolio WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (!item) return res.status(404).json({ error: 'Not found' });
+    if (qty > item.quantity)
+      return res.status(400).json({ error: `Cannot sell ${qty}, only ${item.quantity} available` });
+
+    if (qty === item.quantity) {
+      // sell entire position — mark in-place
+      await execute(
+        'UPDATE portfolio SET sell_price = $1, sell_date = $2, market_price_at_sell = $3 WHERE id = $4 AND user_id = $5',
+        [sell_price, sell_date, market_price_at_sell || null, req.params.id, req.user.id]
+      );
+    } else {
+      // partial sell — reduce original, create sold record
+      await execute(
+        'UPDATE portfolio SET quantity = $1 WHERE id = $2 AND user_id = $3',
+        [item.quantity - qty, req.params.id, req.user.id]
+      );
+      await execute(
+        `INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note, sell_price, sell_date, market_price_at_sell)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [req.user.id, item.code, qty, item.buy_price, item.buy_date, item.note || '',
+         sell_price, sell_date, market_price_at_sell || null]
+      );
+    }
+
+    res.json({ message: 'Sold successfully' });
+  } catch (err) {
+    console.error('[Portfolio] SELL error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// PUT /api/portfolio/:id/reopen — revert a sold holding back to holding
+router.put('/:id/reopen', async (req, res) => {
+  try {
+    const item = await queryOne(
+      'SELECT * FROM portfolio WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    if (!item) return res.status(404).json({ error: 'Not found' });
+
+    await execute(
+      'UPDATE portfolio SET sell_price = NULL, sell_date = NULL, market_price_at_sell = NULL WHERE id = $1 AND user_id = $2',
+      [req.params.id, req.user.id]
+    );
+    res.json({ message: 'Reopened as holding' });
+  } catch (err) {
+    console.error('[Portfolio] REOPEN error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE /api/portfolio/:id — delete a holding
 router.delete('/:id', async (req, res) => {
   try {

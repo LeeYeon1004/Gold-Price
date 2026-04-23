@@ -1,0 +1,344 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+
+  <!-- Not logged in -->
+  @if (!auth.isLoggedIn()) {
+    <div class="card text-center py-16">
+      <div class="text-5xl mb-4">🔒</div>
+      <h2 class="text-xl font-semibold text-slate-800 mb-2">Login to view portfolio</h2>
+      <p class="text-slate-500 mb-6">Track your gold profit/loss</p>
+      <a routerLink="/login" class="btn-primary inline-block">Login now</a>
+    </div>
+  }
+
+  @if (auth.isLoggedIn()) {
+    <!-- Summary cards -->
+    @if (computedSummary(); as s) {
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="card-sm animate-slide-up relative overflow-hidden border-2"
+             [class.border-blue-500]="selectedIds().size > 0"
+             [class.border-slate-200]="selectedIds().size === 0">
+          @if (selectedIds().size > 0) {
+            <div class="absolute top-0 right-0 p-1">
+              <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+            </div>
+          }
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Total Cost</p>
+          <p class="text-lg font-bold text-slate-800 tabular-nums mt-1">{{ s.total_cost / 1_000_000 | number:'1.0-3' }}M</p>
+        </div>
+        <div class="card-sm animate-slide-up relative overflow-hidden border-2"
+             [class.border-blue-500]="selectedIds().size > 0"
+             [class.border-slate-200]="selectedIds().size === 0"
+             style="animation-delay:0.05s">
+          @if (selectedIds().size > 0) {
+            <div class="absolute top-0 right-0 p-1">
+              <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+            </div>
+          }
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Current Value</p>
+          <p class="text-lg font-bold text-blue-700 tabular-nums mt-1">{{ s.total_value / 1_000_000 | number:'1.0-3' }}M</p>
+        </div>
+        <div class="card-sm animate-slide-up relative overflow-hidden border-2"
+             [class.border-blue-500]="selectedIds().size > 0"
+             [class.border-slate-200]="selectedIds().size === 0"
+             style="animation-delay:0.1s">
+          @if (selectedIds().size > 0) {
+            <div class="absolute top-0 right-0 p-1">
+              <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+            </div>
+          }
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Profit / Loss</p>
+          <p class="text-lg font-bold tabular-nums mt-1" [class]="s.total_pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+            {{ s.total_pnl >= 0 ? '+' : '' }}{{ s.total_pnl / 1_000_000 | number:'1.0-3' }}M
+          </p>
+        </div>
+        <div class="card-sm animate-slide-up relative overflow-hidden border-2"
+             [class.border-blue-500]="selectedIds().size > 0"
+             [class.border-slate-200]="selectedIds().size === 0"
+             style="animation-delay:0.15s">
+          @if (selectedIds().size > 0) {
+            <div class="absolute top-0 right-0 p-1">
+              <span class="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse"></span>
+            </div>
+          }
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Return %</p>
+          <p class="text-lg font-bold tabular-nums mt-1" [class]="s.total_pnl_pct >= 0 ? 'text-emerald-700' : 'text-red-600'">
+            {{ s.total_pnl_pct >= 0 ? '+' : '' }}{{ s.total_pnl_pct | number:'1.2-2' }}%
+          </p>
+        </div>
+      </div>
+    }
+
+    <!-- ─── Desktop layout ─── -->
+    <div class="hidden lg:grid grid-cols-3 gap-6">
+      <!-- Form card (desktop) -->
+      <div class="card col-span-1">
+        <ng-container *ngTemplateOutlet="formContent"></ng-container>
+      </div>
+      <!-- List (desktop) -->
+      <div class="card col-span-2">
+        <ng-container *ngTemplateOutlet="listContent"></ng-container>
+      </div>
+    </div>
+
+    <!-- ─── Tablet / Mobile layout ─── -->
+    <div class="lg:hidden space-y-6">
+      <!-- List first on mobile -->
+      <div class="card">
+        <ng-container *ngTemplateOutlet="listContent"></ng-container>
+      </div>
+    </div>
+
+    <!-- Mobile FAB: Add Transaction -->
+    <button
+      class="lg:hidden fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full bg-amber-500 hover:bg-amber-400 shadow-xl shadow-amber-500/40 flex items-center justify-center text-gray-950 transition-all active:scale-95"
+      (click)="openAddForm()">
+      <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/>
+      </svg>
+    </button>
+  }
+</div>
+
+<!-- ═══════════════════════════════════════════
+     FORM MODAL (mobile) / inline (desktop uses template)
+     ═══════════════════════════════════════════ -->
+@if (showFormModal()) {
+  <div class="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="cancelEdit()"></div>
+    <!-- Bottom sheet -->
+    <div class="relative bg-white rounded-t-2xl shadow-2xl max-h-[90vh] overflow-y-auto animate-slide-up">
+      <div class="flex items-center justify-between px-5 pt-5 pb-3 border-b border-slate-100">
+        <h2 class="text-base font-semibold text-slate-900">
+          {{ editId() ? 'Edit Transaction' : 'Add Transaction' }}
+        </h2>
+        <button (click)="cancelEdit()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="px-5 py-4">
+        <ng-container *ngTemplateOutlet="formContent"></ng-container>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════
+     DELETE CONFIRM POPUP
+     ═══════════════════════════════════════════ -->
+@if (confirmDeleteId() !== null) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="cancelDelete()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-slide-up">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="font-semibold text-slate-900">Delete transaction?</h3>
+          <p class="text-sm text-slate-500 mt-0.5">{{ getConfirmDeleteName() }}</p>
+        </div>
+      </div>
+      <p class="text-sm text-slate-600 mb-5">This action cannot be undone.</p>
+      <div class="flex gap-3">
+        <button (click)="cancelDelete()" class="btn-secondary flex-1 text-sm">Cancel</button>
+        <button (click)="confirmDelete()" class="flex-1 text-sm bg-red-600 hover:bg-red-500 text-white font-semibold rounded-xl px-4 py-2.5 transition-colors">
+          Delete
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ═══════════════════════════════════════════
+     SHARED TEMPLATES
+     ═══════════════════════════════════════════ -->
+
+<!-- Form template -->
+<ng-template #formContent>
+  <h2 class="hidden lg:block text-base font-semibold text-slate-900 mb-4">
+    {{ editId() ? 'Edit Transaction' : 'Add Transaction' }}
+  </h2>
+  <form (ngSubmit)="submit()" class="space-y-3" autocomplete="off">
+    <div>
+      <label class="text-xs text-slate-600 mb-1 block">Product</label>
+      <select [ngModel]="form.code" (ngModelChange)="onProductChange($event)" name="code" class="input-field text-sm">
+        @for (rate of goldRates(); track rate.code + rate.vendor_name) {
+          @if (rate.sell_price > 1 && rate.buy_price > 1) {
+            <option [value]="rate.code">{{ rate.name }}</option>
+          }
+        } @empty {
+          <option value="SJC9999">SJC</option>
+        }
+      </select>
+    </div>
+
+    <div>
+      <label class="text-xs text-slate-600 mb-1 block">Quantity (tael/mace)</label>
+      <input [(ngModel)]="form.quantity" name="quantity" type="number" step="0.1" min="0.1"
+        placeholder="e.g., 2.5" class="input-field text-sm" required/>
+    </div>
+
+    <div>
+      <label class="text-xs text-slate-600 mb-1 block">Buy Price (VND)</label>
+      <input [(ngModel)]="form.buy_price" name="buy_price" type="number" step="1000" min="0"
+        placeholder="e.g., 87000000" class="input-field text-sm" required/>
+      @if (form.buy_price) {
+        <p class="text-xs text-blue-700 mt-1">= {{ form.buy_price / 1_000_000 | number:'1.0-3' }}M đ</p>
+      }
+    </div>
+
+    <div>
+      <label class="text-xs text-slate-600 mb-1 block">Buy Date</label>
+      <input [(ngModel)]="form.buy_date" name="buy_date" type="text" appFlatpickr
+        placeholder="YYYY-MM-DD" class="input-field text-sm cursor-pointer" required/>
+    </div>
+
+    <div>
+      <label class="text-xs text-slate-600 mb-1 block">Note (optional)</label>
+      <input [(ngModel)]="form.note" name="note" type="text"
+        placeholder="e.g., Bought at Bao Tin" class="input-field text-sm"/>
+    </div>
+
+    @if (form.quantity && form.buy_price) {
+      <div class="bg-slate-50 rounded-xl p-3 text-xs text-slate-600">
+        <div class="flex justify-between">
+          <span>Total cost basis:</span>
+          <span class="text-slate-800 font-semibold">
+            {{ (form.quantity * form.buy_price) / 1_000_000 | number:'1.0-3' }}M đ
+          </span>
+        </div>
+      </div>
+    }
+
+    <div class="flex gap-2 pt-1">
+      <button type="submit" [disabled]="submitting()" class="btn-primary flex-1 text-sm">
+        @if (submitting()) {
+          <span class="flex items-center justify-center gap-2">
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+            Saving...
+          </span>
+        } @else {
+          {{ editId() ? 'Update' : 'Add to Portfolio' }}
+        }
+      </button>
+      @if (editId()) {
+        <button type="button" (click)="cancelEdit()" class="btn-secondary text-sm px-3">Cancel</button>
+      }
+    </div>
+  </form>
+</ng-template>
+
+<!-- List template -->
+<ng-template #listContent>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-base font-semibold text-slate-900">Your Portfolio</h2>
+    <div class="flex items-center gap-2">
+      @if (selectedIds().size > 0) {
+        <button (click)="clearSelection()" class="text-xs text-slate-500 hover:text-blue-600 flex items-center gap-1 transition-colors">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          Clear ({{ selectedIds().size }})
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="space-y-3">
+      @for (i of [1,2,3]; track i) {
+        <div class="shimmer h-20 rounded-xl"></div>
+      }
+    </div>
+  } @else if (!items().length) {
+    <div class="text-center py-12 text-slate-500">
+      <div class="text-4xl mb-3">💰</div>
+      <p class="text-sm">No transactions yet. Add your first one!</p>
+    </div>
+  } @else {
+    <div class="space-y-3">
+      @for (item of items(); track item.id) {
+        <div
+          (click)="toggleSelection(item.id)"
+          [class]="isSelected(item.id)
+            ? 'bg-blue-50/50 border-blue-200 ring-1 ring-blue-200 shadow-sm'
+            : 'bg-slate-50 border-slate-200 hover:border-slate-300'"
+          class="border rounded-xl p-3 sm:p-4 transition-all cursor-pointer relative overflow-hidden"
+        >
+          @if (isSelected(item.id)) {
+            <div class="absolute top-0 left-0 w-1 h-full bg-blue-500 rounded-l-xl"></div>
+          }
+          @if (deletingId() === item.id) {
+            <div class="absolute inset-0 bg-white/70 flex items-center justify-center rounded-xl z-10">
+              <svg class="w-5 h-5 animate-spin text-red-500" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+              </svg>
+            </div>
+          }
+
+          <!-- Row 1: name + actions -->
+          <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+              <!-- Checkbox -->
+              <div [class]="isSelected(item.id) ? 'bg-blue-600 border-blue-600' : 'bg-white border-slate-300'"
+                   class="w-4 h-4 sm:w-5 sm:h-5 rounded-md border flex items-center justify-center shrink-0 transition-colors shadow-sm">
+                @if (isSelected(item.id)) {
+                  <svg class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                }
+              </div>
+              <div class="min-w-0">
+                <p class="font-semibold text-slate-900 text-sm truncate">{{ getProductName(item.code) }}</p>
+                <p class="text-xs text-slate-400 mt-0.5">{{ item.buy_date | slice:0:10 }} · {{ item.quantity }} units</p>
+              </div>
+            </div>
+            <!-- Edit / Delete actions -->
+            <div class="flex items-center gap-1 shrink-0" (click)="$event.stopPropagation()">
+              <button (click)="editItem(item)" [disabled]="!!deletingId()"
+                class="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-40">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+              </button>
+              <button (click)="requestDelete(item.id)" [disabled]="!!deletingId()"
+                class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 transition-colors disabled:opacity-40">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <!-- Row 2: price data -->
+          <div class="mt-2.5 pl-6 sm:pl-7 grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs">
+            <div class="space-y-0.5">
+              <p class="text-slate-400">Buy price</p>
+              <p class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-slate-400">Current</p>
+              <p class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-slate-400">Cost</p>
+              <p class="text-slate-700 font-medium tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-3' }}M</p>
+            </div>
+            <div class="space-y-0.5">
+              <p class="text-slate-400">P&amp;L</p>
+              <p class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.0-3' }}M
+                <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
+              </p>
+            </div>
+          </div>
+
+          @if (item.note) {
+            <p class="text-xs text-slate-400 italic mt-1.5 pl-6 sm:pl-7">{{ item.note }}</p>
+          }
+        </div>
+      }
+    </div>
+  }
+</ng-template>

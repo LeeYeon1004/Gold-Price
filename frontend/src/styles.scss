@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
-@import "flatpickr/dist/flatpickr.min.css";
+@import "flatpickr/dist/themes/airbnb.css";
 
 @tailwind base;
 @tailwind components;
@@ -88,4 +88,14 @@
 @keyframes shimmer {
   0%   { background-position: 200% 0; }
   100% { background-position: -200% 0; }
+}
+
+.animate-loading-bar {
+  animation: loadingBar 1.4s ease-in-out infinite;
+}
+
+@keyframes loadingBar {
+  0%   { width: 0%;   margin-left: 0%; }
+  50%  { width: 75%;  margin-left: 10%; }
+  100% { width: 0%;   margin-left: 100%; }
 }

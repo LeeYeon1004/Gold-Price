@@ -16,5 +16,10 @@ export const routes: Routes = [
     loadComponent: () => import('./pages/login/login.component').then(m => m.LoginComponent),
     title: 'Login – Gold Tracker',
   },
+  {
+    path: 'trades',
+    loadComponent: () => import('./pages/trades/trades.component').then(m => m.TradesComponent),
+    title: 'Trades – Gold Tracker',
+  },
   { path: '**', redirectTo: '' },
 ];

@@ -1,0 +1,329 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+
+  <!-- Not logged in -->
+  @if (!auth.isLoggedIn()) {
+    <div class="card text-center py-16">
+      <div class="text-5xl mb-4">🔒</div>
+      <h2 class="text-xl font-semibold text-slate-800 mb-2">Login to view trades</h2>
+      <a routerLink="/login" class="btn-primary inline-block mt-4">Login now</a>
+    </div>
+  }
+
+  @if (auth.isLoggedIn()) {
+
+    <!-- Summary row -->
+    @if (!loading() && allItems().length) {
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div class="card-sm">
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Holding</p>
+          <p class="text-2xl font-bold text-blue-700 mt-1">{{ holding().length }}</p>
+          <p class="text-xs text-slate-400 mt-0.5">positions</p>
+        </div>
+        <div class="card-sm">
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Sold</p>
+          <p class="text-2xl font-bold text-slate-700 mt-1">{{ sold().length }}</p>
+          <p class="text-xs text-slate-400 mt-0.5">positions</p>
+        </div>
+        <div class="card-sm">
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Realised P&L</p>
+          @if (sold().length) {
+            <p class="text-xl font-bold tabular-nums mt-1" [class]="totalRealisedPnl() >= 0 ? 'text-emerald-700' : 'text-red-600'">
+              {{ totalRealisedPnl() >= 0 ? '+' : '' }}{{ totalRealisedPnl() / 1000000 | number:'1.0-3' }}M
+            </p>
+          } @else {
+            <p class="text-xl font-bold text-slate-300 mt-1">—</p>
+          }
+        </div>
+        <div class="card-sm">
+          <p class="text-xs text-slate-500 uppercase tracking-wider">Unrealised P&L</p>
+          @if (holding().length) {
+            <p class="text-xl font-bold tabular-nums mt-1" [class]="totalUnrealisedPnl() >= 0 ? 'text-emerald-700' : 'text-red-600'">
+              {{ totalUnrealisedPnl() >= 0 ? '+' : '' }}{{ totalUnrealisedPnl() / 1000000 | number:'1.0-3' }}M
+            </p>
+          } @else {
+            <p class="text-xl font-bold text-slate-300 mt-1">—</p>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Two-column layout: Holding | Sold ── -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-stretch">
+
+      <!-- Holding -->
+      <div class="card flex flex-col h-[500px] lg:h-[calc(100vh-240px)]">
+        <div class="flex items-center justify-between mb-4 shrink-0">
+          <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+            Holding
+          </h2>
+          <span class="text-xs text-slate-400">{{ holding().length }} position{{ holding().length !== 1 ? 's' : '' }}</span>
+        </div>
+
+        @if (loading()) {
+          <div class="space-y-3">
+            @for (i of [1,2]; track i) { <div class="shimmer h-20 rounded-xl"></div> }
+          </div>
+        } @else if (!holding().length) {
+          <p class="text-sm text-slate-400 text-center py-10">No holdings.<br><span class="text-xs">Add transactions in Portfolio.</span></p>
+        } @else {
+          <div class="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
+            @for (item of holding(); track item.id) {
+              <div class="bg-slate-50 border border-slate-200 rounded-xl p-3">
+                <div class="flex items-start justify-between gap-2 mb-2.5">
+                  <div class="min-w-0">
+                    <p class="font-semibold text-slate-900 text-sm truncate">{{ getProductName(item.code) }}</p>
+                    <p class="text-xs text-slate-400 mt-0.5">{{ item.buy_date | slice:0:10 }} · {{ item.quantity }} units</p>
+                  </div>
+                  <button (click)="openSell(item)"
+                    class="shrink-0 text-xs bg-amber-500 hover:bg-amber-400 text-gray-950 font-semibold px-3 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                    Mark Sold
+                  </button>
+                </div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1.5 text-xs">
+                  <div>
+                    <p class="text-slate-400">Buy price</p>
+                    <p class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400">Current price</p>
+                    <p class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1000000 | number:'1.0-3' }}M</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400">Cost</p>
+                    <p class="text-slate-700 tabular-nums">{{ item.cost_basis / 1000000 | number:'1.0-3' }}M</p>
+                  </div>
+                  <div>
+                    <p class="text-slate-400">Unrealised P&L</p>
+                    <p class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                      {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1000000 | number:'1.0-3' }}M
+                      <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
+                    </p>
+                  </div>
+                </div>
+                @if (item.note) {
+                  <p class="text-xs text-slate-400 italic mt-2">{{ item.note }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Sold -->
+      <div class="card flex flex-col h-[500px] lg:h-[calc(100vh-240px)]">
+        <div class="flex items-center justify-between mb-4 shrink-0">
+          <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
+            Sold
+          </h2>
+          <span class="text-xs text-slate-400">{{ sold().length }} position{{ sold().length !== 1 ? 's' : '' }}</span>
+        </div>
+
+        @if (loading()) {
+          <div class="space-y-3">
+            @for (i of [1,2]; track i) { <div class="shimmer h-24 rounded-xl"></div> }
+          </div>
+        } @else if (!sold().length) {
+          <p class="text-sm text-slate-400 text-center py-10">No closed positions yet.</p>
+        } @else {
+          <div class="space-y-2 flex-1 overflow-y-auto pr-1 min-h-0">
+            @for (item of sold(); track item.id) {
+              @let pnl = sellPnl(item);
+              @let pnlPct = sellPnlPct(item);
+              @let vsMarket = sellVsMarket(item);
+              <div class="border rounded-xl p-3 transition-all"
+                   [class]="pnl >= 0 ? 'bg-emerald-50/40 border-emerald-200' : 'bg-red-50/40 border-red-200'">
+                <div class="flex items-start justify-between gap-2 mb-2.5">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <p class="font-semibold text-slate-900 text-sm">{{ getProductName(item.code) }}</p>
+                      <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                            [class]="pnl >= 0 ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'">
+                        {{ pnl >= 0 ? '+' : '' }}{{ pnl / 1000000 | number:'1.0-3' }}M
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">
+                      Buy {{ item.buy_date | slice:0:10 }} · Sell {{ item.sell_date | slice:0:10 }} · {{ item.quantity }} units
+                    </p>
+                  </div>
+                  <button (click)="requestReopen(item.id)"
+                    class="shrink-0 text-xs text-slate-500 hover:text-blue-600 border border-slate-300 hover:border-blue-400 px-2.5 py-1.5 rounded-lg transition-colors whitespace-nowrap">
+                    Reopen
+                  </button>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                  <div class="bg-white/70 rounded-lg px-3 py-2">
+                    <p class="text-slate-400 mb-0.5">Buy price</p>
+                    <p class="font-semibold text-slate-700 tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</p>
+                  </div>
+                  <div class="bg-white/70 rounded-lg px-3 py-2">
+                    <p class="text-slate-400 mb-0.5">Sell price</p>
+                    <p class="font-semibold tabular-nums" [class]="(item.sell_price ?? 0) >= item.buy_price ? 'text-emerald-700' : 'text-red-600'">
+                      {{ (item.sell_price ?? 0) / 1000000 | number:'1.0-3' }}M
+                    </p>
+                  </div>
+                  @if (item.market_price_at_sell) {
+                    <div class="bg-white/70 rounded-lg px-3 py-2">
+                      <p class="text-slate-400 mb-0.5">Market at sell</p>
+                      <p class="font-semibold text-slate-600 tabular-nums">{{ item.market_price_at_sell / 1000000 | number:'1.0-3' }}M</p>
+                    </div>
+                    <div class="bg-white/70 rounded-lg px-3 py-2">
+                      <p class="text-slate-400 mb-0.5">vs Market</p>
+                      @if (vsMarket !== null) {
+                        <p class="font-semibold tabular-nums" [class]="vsMarket >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                          {{ vsMarket >= 0 ? '+' : '' }}{{ vsMarket / 1000000 | number:'1.0-3' }}M
+                        </p>
+                      }
+                    </div>
+                  }
+                  <div class="bg-white/70 rounded-lg px-3 py-2 col-span-2">
+                    <p class="text-slate-400 mb-0.5">P&L %</p>
+                    <p class="font-semibold tabular-nums" [class]="pnlPct >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                      {{ pnlPct >= 0 ? '+' : '' }}{{ pnlPct | number:'1.2-2' }}%
+                    </p>
+                  </div>
+                </div>
+
+                @if (item.note) {
+                  <p class="text-xs text-slate-400 italic mt-2">{{ item.note }}</p>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+    </div><!-- end grid -->
+
+  }
+</div>
+
+<!-- ═══ SELL MODAL ═══ -->
+@if (getSellTargetItem(); as item) {
+  <div class="fixed inset-0 z-50 flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="cancelSell()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 animate-slide-up">
+
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="font-semibold text-slate-900">Mark as Sold</h3>
+          <p class="text-xs text-slate-400 mt-0.5">{{ getProductName(item.code) }}</p>
+        </div>
+        <button (click)="cancelSell()" class="p-1.5 rounded-lg hover:bg-slate-100 text-slate-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <form (ngSubmit)="confirmSell()" #sellFormRef="ngForm" class="space-y-4">
+
+        <!-- Quantity -->
+        <div>
+          <div class="flex items-baseline justify-between mb-1">
+            <label class="text-xs font-medium text-slate-700">Quantity to sell</label>
+            <span class="text-xs text-slate-400">Total holding: <strong class="text-slate-600">{{ item.quantity }}</strong></span>
+          </div>
+          <input [(ngModel)]="sellForm.sell_quantity" name="sell_quantity" type="number"
+            [min]="1" [max]="item.quantity" step="1" required
+            class="input-field text-sm font-semibold" placeholder="Enter quantity"/>
+          @if (sellForm.sell_quantity && (sellForm.sell_quantity < 1 || sellForm.sell_quantity > item.quantity)) {
+            <p class="text-xs text-red-500 mt-1">Must be between 1 and {{ item.quantity }}</p>
+          }
+          @if (sellForm.sell_quantity && sellForm.sell_quantity > 0 && sellForm.sell_quantity < item.quantity) {
+            <p class="text-xs text-amber-600 mt-1">Partial sell — {{ item.quantity - sellForm.sell_quantity }} units remain in holding</p>
+          }
+        </div>
+
+        <!-- Sell price (read-only) -->
+        <div>
+          <label class="text-xs font-medium text-slate-700 mb-1 block">Sell price <span class="text-slate-400 font-normal">(market rate, read-only)</span></label>
+          <div class="input-field text-sm bg-slate-50 text-slate-700 select-none cursor-default flex items-center justify-between">
+            @if (sellForm.sell_price) {
+              <span class="tabular-nums">{{ sellForm.sell_price | number:'1.0-0' }} ₫</span>
+              <span class="text-slate-400 text-xs">= {{ sellForm.sell_price / 1000000 | number:'1.0-3' }}M</span>
+            } @else {
+              <span class="text-slate-400">No market price</span>
+            }
+          </div>
+        </div>
+
+        <!-- Sell date (read-only) -->
+        <div>
+          <label class="text-xs font-medium text-slate-700 mb-1 block">Sell date <span class="text-slate-400 font-normal">(today, read-only)</span></label>
+          <div class="input-field text-sm bg-slate-50 text-slate-700 select-none cursor-default">
+            {{ sellForm.sell_date }}
+          </div>
+        </div>
+
+        <!-- P&L preview -->
+        @if (sellForm.sell_price && sellForm.sell_quantity && sellForm.sell_quantity > 0 && sellForm.sell_quantity <= item.quantity) {
+          <div class="rounded-xl border border-slate-200 divide-y divide-slate-100 text-xs overflow-hidden">
+            <div class="flex justify-between px-4 py-2.5 bg-slate-50">
+              <span class="text-slate-500">Buy price / unit</span>
+              <span class="font-medium text-slate-700 tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5 bg-slate-50">
+              <span class="text-slate-500">Sell price / unit</span>
+              <span class="font-medium text-slate-700 tabular-nums">{{ sellForm.sell_price / 1000000 | number:'1.0-3' }}M</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5">
+              <span class="text-slate-500">Quantity selling</span>
+              <span class="font-medium text-slate-700">{{ sellForm.sell_quantity }}</span>
+            </div>
+            <div class="flex justify-between px-4 py-2.5 font-semibold">
+              <span class="text-slate-600">Realised P&L</span>
+              @let pnl = (sellForm.sell_price - item.buy_price) * sellForm.sell_quantity;
+              <span class="tabular-nums" [class]="pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                {{ pnl >= 0 ? '+' : '' }}{{ pnl / 1000000 | number:'1.0-3' }}M
+              </span>
+            </div>
+          </div>
+        }
+
+        @if (sellError()) {
+          <div class="bg-red-50 border border-red-200 text-red-700 text-xs rounded-xl px-4 py-2.5">
+            {{ sellError() }}
+          </div>
+        }
+
+        <div class="flex gap-2 pt-1">
+          <button type="button" (click)="cancelSell()" class="btn-secondary flex-1 text-sm">Cancel</button>
+          <button type="submit"
+            [disabled]="submitting() || !sellForm.sell_price || !sellForm.sell_quantity || sellForm.sell_quantity < 1 || sellForm.sell_quantity > item.quantity"
+            class="btn-primary flex-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (submitting()) {
+              <span class="flex items-center justify-center gap-2">
+                <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+                </svg>
+                Saving...
+              </span>
+            } @else {
+              Confirm Sale
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ═══ REOPEN CONFIRM ═══ -->
+@if (reopenTargetId() !== null) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" (click)="cancelReopen()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 animate-slide-up">
+      <h3 class="font-semibold text-slate-900 mb-2">Reopen as Holding?</h3>
+      <p class="text-sm text-slate-500 mb-5">Sale info will be cleared and the position moved back to Holding.</p>
+      <div class="flex gap-3">
+        <button (click)="cancelReopen()" class="btn-secondary flex-1 text-sm">Cancel</button>
+        <button (click)="confirmReopen()" class="flex-1 text-sm bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-xl px-4 py-2.5 transition-colors">
+          Reopen
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -58,4 +58,12 @@ export class ApiService {
   deletePortfolio(id: number): Observable<any> {
     return this.http.delete(`${this.base}/portfolio/${id}`, { headers: this.authHeader() });
   }
+
+  sellPortfolio(id: number, body: { sell_price: number; sell_date: string; sell_quantity: number; market_price_at_sell?: number }): Observable<any> {
+    return this.http.put(`${this.base}/portfolio/${id}/sell`, body, { headers: this.authHeader() });
+  }
+
+  reopenPortfolio(id: number): Observable<any> {
+    return this.http.put(`${this.base}/portfolio/${id}/reopen`, {}, { headers: this.authHeader() });
+  }
 }

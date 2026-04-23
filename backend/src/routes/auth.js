@@ -6,7 +6,8 @@ const { signToken, authMiddleware } = require('../middleware/auth');
 const router = express.Router();
 
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body;
+  const username = req.body.username?.trim().toLowerCase();
+  const { password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Please enter username and password' });
   if (username.length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
   if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
@@ -29,7 +30,8 @@ router.post('/register', async (req, res) => {
 });
 
 router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const username = req.body.username?.trim().toLowerCase();
+  const { password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Please enter username and password' });
 
   try {

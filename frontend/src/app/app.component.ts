@@ -1,18 +1,15 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { NavbarComponent } from './components/layout/navbar.component';
+import { LoadingService } from './services/loading.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, NavbarComponent],
-  template: `
-    <div class="min-h-screen bg-slate-50">
-      <app-navbar/>
-      <main>
-        <router-outlet/>
-      </main>
-    </div>
-  `,
+  imports: [RouterOutlet, NavbarComponent, CommonModule],
+  templateUrl: './app.component.html',
 })
-export class AppComponent {}
+export class AppComponent {
+  loading = inject(LoadingService);
+}

@@ -31,7 +31,11 @@ export interface PortfolioItem {
   buy_date: string;
   note: string;
   created_at: string;
-  // enriched
+  // sell info (null = still holding)
+  sell_price: number | null;
+  sell_date: string | null;
+  market_price_at_sell: number | null;
+  // enriched by backend
   current_price: number;
   cost_basis: number;
   current_value: number;

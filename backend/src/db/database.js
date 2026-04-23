@@ -177,7 +177,37 @@ async function initSchema() {
   } else {
     getSqlite().exec(sqliteSchema);
   }
+  // Run migrations for new columns
+  await migrate();
   console.log(`[DB] Schema initialized (${isPg ? 'PostgreSQL + SQLite Backup' : 'SQLite'})`);
+}
+
+async function migrate() {
+  const pgMigrations = [
+    `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS sell_price REAL`,
+    `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS sell_date TEXT`,
+    `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS market_price_at_sell REAL`,
+  ];
+  const sqliteMigrations = [
+    `ALTER TABLE portfolio ADD COLUMN sell_price REAL`,
+    `ALTER TABLE portfolio ADD COLUMN sell_date TEXT`,
+    `ALTER TABLE portfolio ADD COLUMN market_price_at_sell REAL`,
+  ];
+
+  if (isPg) {
+    for (const sql of pgMigrations) {
+      try { await getPool().query(sql); } catch (_) {}
+    }
+    try {
+      for (const sql of sqliteMigrations) {
+        try { getSqlite().prepare(sql).run(); } catch (_) {}
+      }
+    } catch (_) {}
+  } else {
+    for (const sql of sqliteMigrations) {
+      try { getSqlite().prepare(sql).run(); } catch (_) {}
+    }
+  }
 }
 
 /** 
@@ -222,4 +252,4 @@ async function syncToSQLite() {
   }
 }
 
-module.exports = { query, queryOne, execute, initSchema, syncToSQLite, isPg };
+module.exports = { query, queryOne, execute, initSchema, syncToSQLite, migrate, isPg };
