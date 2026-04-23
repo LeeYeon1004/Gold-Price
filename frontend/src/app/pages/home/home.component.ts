@@ -23,7 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   combinedLoading = computed(() => this.chartLoading() || this.ratesService.loading());
 
-  private get sjcRate() { return this.ratesService.rates().find(r => r.code === 'SJC') ?? this.ratesService.rates()[0]; }
+  private get sjcRate() { return this.ratesService.rates().find(r => r.code === 'SJC9999') ?? this.ratesService.rates()[0]; }
   sjcSell = () => this.sjcRate?.sell_price ?? 0;
   sjcBuy  = () => this.sjcRate?.buy_price ?? 0;
 
