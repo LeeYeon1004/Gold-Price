@@ -99,3 +99,24 @@
   50%  { width: 75%;  margin-left: 10%; }
   100% { width: 0%;   margin-left: 100%; }
 }
+
+/* ─── Mobile fixes ─────────────────────────────────────────────────────────── */
+
+/* Prevent iOS Safari from auto-zooming when focusing an input.
+   iOS zooms in whenever the focused input's font-size is < 16px.
+   Overriding to 16px on small screens prevents this without
+   sacrificing the larger-screen Tailwind text-sm sizes. */
+@media (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* Prevent background scroll while a modal/bottom-sheet is open.
+   Applied by components via document.body.style.overflow = 'hidden'. */
+body.modal-open,
+body[style*="overflow: hidden"] {
+  /* iOS Safari requires this additional rule to truly stop scroll */
+  position: fixed;
+  width: 100%;
+}

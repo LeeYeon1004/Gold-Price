@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -22,7 +22,7 @@ interface AddForm {
   imports: [CommonModule, FormsModule, RouterLink, FlatpickrDirective],
   templateUrl: './portfolio.component.html',
 })
-export class PortfolioComponent implements OnInit {
+export class PortfolioComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   auth = inject(AuthService);
   ratesService = inject(RatesService);
@@ -71,6 +71,27 @@ export class PortfolioComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    document.body.style.overflow = '';
+  }
+
+  /** Lock or unlock body scroll based on whether any modal is open.
+   *  Saves/restores scroll position because iOS Safari requires
+   *  position:fixed on body to prevent scroll-through on modals. */
+  private scrollY = 0;
+  private syncBodyScroll() {
+    const anyOpen = this.showFormModal() || this.confirmDeleteId() !== null;
+    if (anyOpen) {
+      this.scrollY = window.scrollY;
+      document.body.style.top = `-${this.scrollY}px`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.top = '';
+      window.scrollTo({ top: this.scrollY, behavior: 'instant' });
+    }
+  }
+
   load() {
     this.portfolioLoading.set(true);
     this.api.getPortfolio().subscribe({
@@ -114,6 +135,7 @@ export class PortfolioComponent implements OnInit {
     this.editId.set(null);
     this.form = this.emptyForm();
     this.showFormModal.set(true);
+    this.syncBodyScroll();
   }
 
   submit() {
@@ -138,6 +160,7 @@ export class PortfolioComponent implements OnInit {
         this.editId.set(null);
         this.submitting.set(false);
         this.showFormModal.set(false);
+        this.syncBodyScroll();
         this.load();
       },
       error: () => this.submitting.set(false),
@@ -165,6 +188,7 @@ export class PortfolioComponent implements OnInit {
       note: item.note,
     };
     this.showFormModal.set(true);
+    this.syncBodyScroll();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -172,21 +196,25 @@ export class PortfolioComponent implements OnInit {
     this.editId.set(null);
     this.form = this.emptyForm();
     this.showFormModal.set(false);
+    this.syncBodyScroll();
   }
 
   // Show delete confirm popup
   requestDelete(id: number) {
     this.confirmDeleteId.set(id);
+    this.syncBodyScroll();
   }
 
   cancelDelete() {
     this.confirmDeleteId.set(null);
+    this.syncBodyScroll();
   }
 
   confirmDelete() {
     const id = this.confirmDeleteId();
     if (id === null) return;
     this.confirmDeleteId.set(null);
+    this.syncBodyScroll();
     this.deletingId.set(id);
     this.api.deletePortfolio(id).subscribe({
       next: () => {

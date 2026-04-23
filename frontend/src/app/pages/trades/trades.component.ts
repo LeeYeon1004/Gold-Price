@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -20,7 +20,7 @@ interface SellForm {
   imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './trades.component.html',
 })
-export class TradesComponent implements OnInit {
+export class TradesComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   auth = inject(AuthService);
   ratesService = inject(RatesService);
@@ -48,6 +48,27 @@ export class TradesComponent implements OnInit {
     }
   }
 
+  ngOnDestroy() {
+    document.body.style.overflow = '';
+  }
+
+  /** Lock or unlock body scroll based on whether any modal is open.
+   *  Saves/restores scroll position because iOS Safari requires
+   *  position:fixed on body to prevent scroll-through on modals. */
+  private scrollY = 0;
+  private syncBodyScroll() {
+    const anyOpen = this.sellTargetId() !== null || this.reopenTargetId() !== null;
+    if (anyOpen) {
+      this.scrollY = window.scrollY;
+      document.body.style.top = `-${this.scrollY}px`;
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+      document.body.style.top = '';
+      window.scrollTo({ top: this.scrollY, behavior: 'instant' });
+    }
+  }
+
   load() {
     this.loading.set(true);
     this.api.getPortfolio().subscribe({
@@ -72,12 +93,14 @@ export class TradesComponent implements OnInit {
       sell_date: new Date().toISOString().slice(0, 10),
       market_price_at_sell: market,
     };
+    this.syncBodyScroll();
   }
 
   cancelSell() {
     this.sellTargetId.set(null);
     this.sellForm = this.emptySellForm();
     this.sellError.set(null);
+    this.syncBodyScroll();
   }
 
   confirmSell() {
@@ -100,7 +123,13 @@ export class TradesComponent implements OnInit {
       sell_quantity: qty,
       market_price_at_sell: this.sellForm.market_price_at_sell ?? undefined,
     }).subscribe({
-      next: () => { this.submitting.set(false); this.sellTargetId.set(null); this.sellError.set(null); this.load(); },
+      next: () => {
+        this.submitting.set(false);
+        this.sellTargetId.set(null);
+        this.sellError.set(null);
+        this.syncBodyScroll();
+        this.load();
+      },
       error: (err) => {
         this.submitting.set(false);
         this.sellError.set(err?.error?.error ?? 'Something went wrong. Please try again.');
@@ -110,13 +139,14 @@ export class TradesComponent implements OnInit {
 
   // ─── Reopen ──────────────────────────────────────────────────────────────
 
-  requestReopen(id: number) { this.reopenTargetId.set(id); }
-  cancelReopen() { this.reopenTargetId.set(null); }
+  requestReopen(id: number) { this.reopenTargetId.set(id); this.syncBodyScroll(); }
+  cancelReopen() { this.reopenTargetId.set(null); this.syncBodyScroll(); }
 
   confirmReopen() {
     const id = this.reopenTargetId();
     if (!id) return;
     this.reopenTargetId.set(null);
+    this.syncBodyScroll();
     this.api.reopenPortfolio(id).subscribe({ next: () => this.load() });
   }
 
