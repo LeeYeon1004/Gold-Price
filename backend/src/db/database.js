@@ -6,7 +6,8 @@
  * All public functions return Promises to keep callers consistent.
  */
 
-const isPg = !!process.env.DATABASE_URL;
+const isPg     = !!process.env.DATABASE_URL;
+const isVercel  = !!process.env.VERCEL; // Set automatically by Vercel platform
 
 // ─── PostgreSQL pool ────────────────────────────────────────────────────────
 let _pool = null;
@@ -75,8 +76,8 @@ async function queryOne(text, params = []) {
 async function execute(text, params = []) {
   if (isPg) {
     const result = await getPool().query(text, params);
-    // Trigger background sync on write (non-blocking)
-    syncToSQLite().catch(() => {});
+    // Trigger background SQLite sync on write (non-blocking) — skip on Vercel
+    if (!isVercel) syncToSQLite().catch(() => {});
     return { insertId: result.rows[0]?.id || null, rowCount: result.rowCount };
   }
   const result = getSqlite().prepare(toSqlite(stripReturning(text))).run(...params);
@@ -168,11 +169,13 @@ async function initSchema() {
 
   if (isPg) {
     await getPool().query(pgSchema);
-    // Always initialize SQLite too for backup
-    try {
-      getSqlite().exec(sqliteSchema);
-    } catch (err) {
-      console.warn('[DB] SQLite backup initialization failed (normal on some cloud environments):', err.message);
+    // Always initialize SQLite too for backup — skip on Vercel (ephemeral FS)
+    if (!isVercel) {
+      try {
+        getSqlite().exec(sqliteSchema);
+      } catch (err) {
+        console.warn('[DB] SQLite backup initialization failed (normal on some cloud environments):', err.message);
+      }
     }
   } else {
     getSqlite().exec(sqliteSchema);

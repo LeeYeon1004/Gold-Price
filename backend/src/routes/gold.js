@@ -72,4 +72,26 @@ router.post('/refresh', async (req, res) => {
   }
 });
 
+// GET /api/gold/cron/fetch — called by external cron service (cron-job.org / Vercel Cron)
+// Replaces the node-cron scheduler which cannot run in serverless environments.
+// Protect with CRON_SECRET env var to prevent unauthorized triggers.
+router.get('/cron/fetch', async (req, res) => {
+  const secret = process.env.CRON_SECRET;
+  if (secret && req.headers['x-cron-secret'] !== secret) {
+    return res.status(401).json({ error: 'Unauthorized' });
+  }
+  try {
+    const { fetchAndCacheChart } = require('../services/goldService');
+    await fetchAndCacheRates();
+    const DEFAULT_CODES = ['KHS', 'SJC9999', 'BT24K', 'KGB'];
+    for (const code of DEFAULT_CODES) {
+      try { await fetchAndCacheChart(code); } catch (_) {}
+    }
+    res.json({ success: true, message: 'Cron fetch complete', at: new Date().toISOString() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
+
