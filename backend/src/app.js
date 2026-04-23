@@ -50,6 +50,14 @@ if (require.main === module) {
   async function main() {
     try {
       await initSchema();
+      
+      // Auto-sync from cloud to local backup on startup (Local Dev only)
+      const { syncToSQLite, isPg } = require('./db/database');
+      if (isPg) {
+        console.log('[Backup] Syncing cloud data to local SQLite...');
+        await syncToSQLite();
+      }
+
       app.listen(PORT, () => {
         console.log(`Gold Price server running on port ${PORT}`);
         startScheduler();
