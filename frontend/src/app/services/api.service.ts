@@ -1,8 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-import { GoldRate, GoldChartData, PortfolioItem, PortfolioSummary, User } from '../models/gold.model';
+import { GoldRate, GoldChartData, PortfolioItem, PortfolioSummary, User, Member } from '../models/gold.model';
 import { environment } from '../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
@@ -42,13 +41,28 @@ export class ApiService {
     return this.http.get<any>(`${this.base}/auth/me`, { headers: this.authHeader() });
   }
 
-  // --- Portfolio ---
-  getPortfolio(): Observable<{ data: PortfolioItem[]; summary: PortfolioSummary }> {
-    return this.http.get<any>(`${this.base}/portfolio`, { headers: this.authHeader() });
+  // --- Members ---
+  getMembers(): Observable<{ data: Member[] }> {
+    return this.http.get<any>(`${this.base}/members`, { headers: this.authHeader() });
   }
 
-  addPortfolio(item: { code: string; quantity: number; buy_price: number; buy_date: string; note?: string }): Observable<any> {
-    return this.http.post(`${this.base}/portfolio`, item, { headers: this.authHeader() });
+  addMember(name: string): Observable<{ id: number; name: string }> {
+    return this.http.post<any>(`${this.base}/members`, { name }, { headers: this.authHeader() });
+  }
+
+  deleteMember(id: number): Observable<any> {
+    return this.http.delete(`${this.base}/members/${id}`, { headers: this.authHeader() });
+  }
+
+  // --- Portfolio ---
+  getPortfolio(memberId?: number | null): Observable<{ data: PortfolioItem[]; summary: PortfolioSummary }> {
+    const params = memberId ? `?member_id=${memberId}` : '';
+    return this.http.get<any>(`${this.base}/portfolio${params}`, { headers: this.authHeader() });
+  }
+
+  addPortfolio(item: { code: string; quantity: number; buy_price: number; buy_date: string; note?: string }, memberId?: number | null): Observable<any> {
+    const body = { ...item, ...(memberId ? { member_id: memberId } : {}) };
+    return this.http.post(`${this.base}/portfolio`, body, { headers: this.authHeader() });
   }
 
   updatePortfolio(id: number, item: Partial<{ code: string; quantity: number; buy_price: number; buy_date: string; note: string }>): Observable<any> {

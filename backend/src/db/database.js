@@ -124,6 +124,14 @@ async function initSchema() {
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS members (
+      id SERIAL PRIMARY KEY,
+      owner_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `;
 
   const sqliteSchema = `
@@ -165,6 +173,14 @@ async function initSchema() {
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS members (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      owner_id INTEGER NOT NULL,
+      name TEXT NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
+    );
   `;
 
   if (isPg) {
@@ -190,11 +206,15 @@ async function migrate() {
     `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS sell_price REAL`,
     `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS sell_date TEXT`,
     `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS market_price_at_sell REAL`,
+    `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS member_id INTEGER REFERENCES members(id) ON DELETE SET NULL`,
+    `CREATE TABLE IF NOT EXISTS members (id SERIAL PRIMARY KEY, owner_id INTEGER NOT NULL, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE)`,
   ];
   const sqliteMigrations = [
     `ALTER TABLE portfolio ADD COLUMN sell_price REAL`,
     `ALTER TABLE portfolio ADD COLUMN sell_date TEXT`,
     `ALTER TABLE portfolio ADD COLUMN market_price_at_sell REAL`,
+    `CREATE TABLE IF NOT EXISTS members (id INTEGER PRIMARY KEY AUTOINCREMENT, owner_id INTEGER NOT NULL, name TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE)`,
+    `ALTER TABLE portfolio ADD COLUMN member_id INTEGER REFERENCES members(id) ON DELETE SET NULL`,
   ];
 
   if (isPg) {
@@ -221,7 +241,7 @@ async function syncToSQLite() {
   if (!isPg) return;
   try {
     const sqlite = getSqlite();
-    const tables = ['users', 'gold_prices', 'gold_chart_cache', 'portfolio'];
+    const tables = ['users', 'gold_prices', 'gold_chart_cache', 'members', 'portfolio'];
     
     for (const table of tables) {
       const rows = await query(`SELECT * FROM ${table}`);

@@ -71,16 +71,21 @@
   </div>
 
   <!-- Price table + chart -->
-  <div class="grid grid-cols-1 xl:grid-cols-5 gap-6">
-    <div class="card xl:col-span-3">
-      <div class="flex items-center justify-between mb-4">
+  <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 xl:items-start">
+    <!-- Price table: capped at chart height, scrolls internally on desktop -->
+    <div class="card xl:col-span-3 flex flex-col"
+         [style.maxHeight]="priceMaxH() ? priceMaxH() + 'px' : null">
+      <div class="flex items-center justify-between mb-4 shrink-0">
         <h2 class="text-base font-semibold text-slate-900">Gold Prices</h2>
         <span class="text-xs text-slate-500">Source: Bao Tin Manh Hai</span>
       </div>
-      <app-price-table [rates]="ratesService.rates()" [loading]="combinedLoading()"/>
+      <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
+        <app-price-table [rates]="ratesService.rates()" [loading]="combinedLoading()"/>
+      </div>
     </div>
 
-    <div class="card xl:col-span-2">
+    <!-- Chart: natural height, serves as reference -->
+    <div #chartCard class="card xl:col-span-2">
       <div class="flex items-center justify-between mb-4">
         <h2 class="text-base font-semibold text-slate-900">Price Chart</h2>
         @if (productOptions().length) {

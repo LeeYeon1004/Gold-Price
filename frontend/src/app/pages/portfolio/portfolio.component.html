@@ -11,6 +11,17 @@
   }
 
   @if (auth.isLoggedIn()) {
+    <!-- Active member banner -->
+    @if (memberSvc.activeMember(); as m) {
+      <div class="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-xl px-4 py-2.5 text-sm text-blue-700">
+        <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+        </svg>
+        <span>Viewing portfolio of <strong>{{ m.name }}</strong></span>
+        <button (click)="memberSvc.setActive(null)" class="ml-auto text-xs text-blue-500 hover:text-blue-700 font-medium">Switch back</button>
+      </div>
+    }
+
     <!-- Summary cards -->
     @if (computedSummary(); as s) {
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -69,13 +80,14 @@
     }
 
     <!-- ─── Desktop layout ─── -->
-    <div class="hidden lg:grid grid-cols-3 gap-6">
-      <!-- Form card (desktop) -->
-      <div class="card col-span-1">
+    <div class="hidden lg:grid grid-cols-3 gap-6 items-start">
+      <!-- Form card (desktop): natural height, reference for right panel -->
+      <div #formCard class="card col-span-1">
         <ng-container *ngTemplateOutlet="formContent"></ng-container>
       </div>
-      <!-- List (desktop) -->
-      <div class="card col-span-2">
+      <!-- List (desktop): capped at form height, scrolls internally -->
+      <div class="card col-span-2 flex flex-col overflow-hidden"
+           [style.maxHeight]="listMaxH() ? listMaxH() + 'px' : null">
         <ng-container *ngTemplateOutlet="listContent"></ng-container>
       </div>
     </div>
@@ -238,7 +250,7 @@
 
 <!-- List template -->
 <ng-template #listContent>
-  <div class="flex items-center justify-between mb-4">
+  <div class="flex items-center justify-between mb-4 shrink-0">
     <h2 class="text-base font-semibold text-slate-900">Your Portfolio</h2>
     <div class="flex items-center gap-2">
       @if (selectedIds().size > 0) {
@@ -250,6 +262,7 @@
     </div>
   </div>
 
+  <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
   @if (loading()) {
     <div class="space-y-3">
       @for (i of [1,2,3]; track i) {
@@ -318,7 +331,7 @@
               <p class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</p>
             </div>
             <div class="space-y-0.5">
-              <p class="text-slate-400">Current</p>
+              <p class="text-slate-400">Buy-back price</p>
               <p class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</p>
             </div>
             <div class="space-y-0.5">
@@ -341,4 +354,5 @@
       }
     </div>
   }
+  </div><!-- end scroll wrapper -->
 </ng-template>

@@ -6,6 +6,7 @@ const path    = require('path');
 const authRoutes      = require('./routes/auth');
 const goldRoutes      = require('./routes/gold');
 const portfolioRoutes = require('./routes/portfolio');
+const membersRoutes   = require('./routes/members');
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.use(express.json());
 app.use('/api/auth',      authRoutes);
 app.use('/api/gold',      goldRoutes);
 app.use('/api/portfolio', portfolioRoutes);
+app.use('/api/members',   membersRoutes);
 
 // Serve Angular frontend in production (only when NOT deployed to Vercel separately)
 if (!process.env.VERCEL) {

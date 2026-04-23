@@ -6,20 +6,32 @@ const { getLatestRates } = require('../services/goldService');
 const router = express.Router();
 router.use(authMiddleware);
 
-// GET /api/portfolio — list user's gold holdings
+// Verify a member belongs to the requesting user. Returns member row or null.
+async function verifyMember(memberId, userId) {
+  if (!memberId) return null;
+  return queryOne('SELECT id FROM members WHERE id = $1 AND owner_id = $2', [memberId, userId]);
+}
+
+// GET /api/portfolio — list holdings. Pass ?member_id=X to view a member's data.
 router.get('/', async (req, res) => {
   try {
-    const items = await query(
-      'SELECT * FROM portfolio WHERE user_id = $1 ORDER BY buy_date DESC',
-      [req.user.id]
-    );
+    const memberId = req.query.member_id ? Number(req.query.member_id) : null;
+
+    if (memberId) {
+      const member = await verifyMember(memberId, req.user.id);
+      if (!member) return res.status(404).json({ error: 'Member not found' });
+    }
+
+    const items = memberId
+      ? await query('SELECT * FROM portfolio WHERE user_id = $1 AND member_id = $2 ORDER BY buy_date DESC', [req.user.id, memberId])
+      : await query('SELECT * FROM portfolio WHERE user_id = $1 AND member_id IS NULL ORDER BY buy_date DESC', [req.user.id]);
 
     const rates = await getLatestRates();
     const rateMap = {};
-    for (const r of rates) rateMap[r.code] = r.sell_price;
+    for (const r of rates) rateMap[r.code] = r.buy_price;
 
     const enriched = items.map(item => {
-      const currentPrice = rateMap[item.code] || rateMap['SJC9999'] || (rates.length > 0 ? rates[0].sell_price : 0);
+      const currentPrice = rateMap[item.code] || rateMap['SJC9999'] || (rates.length > 0 ? rates[0].buy_price : 0);
       const costBasis    = item.quantity * item.buy_price;
       const currentValue = item.quantity * currentPrice;
       const pnl          = currentValue - costBasis;
@@ -42,18 +54,23 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/portfolio — add a holding
+// POST /api/portfolio — add a holding. Pass member_id in body for a member's entry.
 router.post('/', async (req, res) => {
-  const { code, quantity, buy_price, buy_date, note } = req.body;
+  const { code, quantity, buy_price, buy_date, note, member_id } = req.body;
   if (!quantity || !buy_price || !buy_date)
     return res.status(400).json({ error: 'quantity, buy_price, buy_date required' });
   if (quantity <= 0 || buy_price <= 0)
     return res.status(400).json({ error: 'quantity and buy_price must be positive' });
 
   try {
+    if (member_id) {
+      const member = await verifyMember(member_id, req.user.id);
+      if (!member) return res.status(404).json({ error: 'Member not found' });
+    }
+
     const result = await execute(
-      'INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id',
-      [req.user.id, code || 'SJC9999', quantity, buy_price, buy_date, note || '']
+      'INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note, member_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
+      [req.user.id, code || 'SJC9999', quantity, buy_price, buy_date, note || '', member_id || null]
     );
     res.json({ id: result.insertId, message: 'Added successfully' });
   } catch (err) {
@@ -111,22 +128,20 @@ router.put('/:id/sell', async (req, res) => {
       return res.status(400).json({ error: `Cannot sell ${qty}, only ${item.quantity} available` });
 
     if (qty === item.quantity) {
-      // sell entire position — mark in-place
       await execute(
         'UPDATE portfolio SET sell_price = $1, sell_date = $2, market_price_at_sell = $3 WHERE id = $4 AND user_id = $5',
         [sell_price, sell_date, market_price_at_sell || null, req.params.id, req.user.id]
       );
     } else {
-      // partial sell — reduce original, create sold record
       await execute(
         'UPDATE portfolio SET quantity = $1 WHERE id = $2 AND user_id = $3',
         [item.quantity - qty, req.params.id, req.user.id]
       );
       await execute(
-        `INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note, sell_price, sell_date, market_price_at_sell)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        `INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note, sell_price, sell_date, market_price_at_sell, member_id)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
         [req.user.id, item.code, qty, item.buy_price, item.buy_date, item.note || '',
-         sell_price, sell_date, market_price_at_sell || null]
+         sell_price, sell_date, market_price_at_sell || null, item.member_id || null]
       );
     }
 

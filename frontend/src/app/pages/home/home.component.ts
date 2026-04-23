@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, computed, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ApiService } from '../../services/api.service';
 import { RatesService } from '../../services/rates.service';
@@ -12,9 +12,13 @@ import { GoldChartComponent } from '../../components/chart/gold-chart.component'
   imports: [CommonModule, PriceTableComponent, GoldChartComponent],
   templateUrl: './home.component.html',
 })
-export class HomeComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   ratesService = inject(RatesService);
+
+  @ViewChild('chartCard') chartCard!: ElementRef<HTMLElement>;
+  priceMaxH = signal<number | null>(null);
+  private ro: ResizeObserver | null = null;
 
   refreshing = signal(false);
   chartData = signal<ChartDataPoint[]>([]);
@@ -33,7 +37,15 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.loadChart();
   }
 
+  ngAfterViewInit() {
+    this.ro = new ResizeObserver(() => {
+      this.priceMaxH.set(this.chartCard.nativeElement.offsetHeight);
+    });
+    this.ro.observe(this.chartCard.nativeElement);
+  }
+
   ngOnDestroy() {
+    this.ro?.disconnect();
     this.ratesService.stopAutoRefresh();
   }
 

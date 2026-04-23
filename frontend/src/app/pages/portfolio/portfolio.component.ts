@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, computed, effect, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { RatesService } from '../../services/rates.service';
+import { MemberService } from '../../services/member.service';
 import { PortfolioItem } from '../../models/gold.model';
 import { FlatpickrDirective } from '../../directives/flatpickr.directive';
 
@@ -22,10 +23,23 @@ interface AddForm {
   imports: [CommonModule, FormsModule, RouterLink, FlatpickrDirective],
   templateUrl: './portfolio.component.html',
 })
-export class PortfolioComponent implements OnInit, OnDestroy {
+export class PortfolioComponent implements OnInit, AfterViewInit, OnDestroy {
   private api = inject(ApiService);
   auth = inject(AuthService);
   ratesService = inject(RatesService);
+  memberSvc = inject(MemberService);
+
+  @ViewChild('formCard') formCard!: ElementRef<HTMLElement>;
+  listMaxH = signal<number | null>(null);
+  private ro: ResizeObserver | null = null;
+
+  constructor() {
+    effect(() => {
+      // Reload when active member changes
+      const _ = this.memberSvc.activeMemberId();
+      if (this.auth.isLoggedIn()) this.load();
+    });
+  }
 
   items = signal<PortfolioItem[]>([]);
   portfolioLoading = signal(false);
@@ -66,12 +80,20 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.auth.isLoggedIn()) {
-      this.load();
+      this.memberSvc.load();
       this.ratesService.ensureLoaded();
     }
   }
 
+  ngAfterViewInit() {
+    this.ro = new ResizeObserver(() => {
+      this.listMaxH.set(this.formCard.nativeElement.offsetHeight);
+    });
+    this.ro.observe(this.formCard.nativeElement);
+  }
+
   ngOnDestroy() {
+    this.ro?.disconnect();
     document.body.style.overflow = '';
   }
 
@@ -94,7 +116,7 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
   load() {
     this.portfolioLoading.set(true);
-    this.api.getPortfolio().subscribe({
+    this.api.getPortfolio(this.memberSvc.activeMemberId()).subscribe({
       next: res => {
         this.items.set(res.data);
         this.portfolioLoading.set(false);
@@ -152,7 +174,7 @@ export class PortfolioComponent implements OnInit, OnDestroy {
 
     const req = this.editId()
       ? this.api.updatePortfolio(this.editId()!, payload)
-      : this.api.addPortfolio(payload);
+      : this.api.addPortfolio(payload, this.memberSvc.activeMemberId());
 
     req.subscribe({
       next: () => {

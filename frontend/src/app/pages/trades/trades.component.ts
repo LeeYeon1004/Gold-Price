@@ -1,10 +1,11 @@
-import { Component, OnInit, OnDestroy, inject, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { RatesService } from '../../services/rates.service';
+import { MemberService } from '../../services/member.service';
 import { PortfolioItem } from '../../models/gold.model';
 
 interface SellForm {
@@ -24,6 +25,14 @@ export class TradesComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   auth = inject(AuthService);
   ratesService = inject(RatesService);
+  memberSvc = inject(MemberService);
+
+  constructor() {
+    effect(() => {
+      const _ = this.memberSvc.activeMemberId();
+      if (this.auth.isLoggedIn()) this.load();
+    });
+  }
 
   allItems = signal<PortfolioItem[]>([]);
   loading = signal(false);
@@ -43,7 +52,7 @@ export class TradesComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (this.auth.isLoggedIn()) {
-      this.load();
+      this.memberSvc.load();
       this.ratesService.ensureLoaded();
     }
   }
@@ -71,7 +80,7 @@ export class TradesComponent implements OnInit, OnDestroy {
 
   load() {
     this.loading.set(true);
-    this.api.getPortfolio().subscribe({
+    this.api.getPortfolio(this.memberSvc.activeMemberId()).subscribe({
       next: res => { this.allItems.set(res.data); this.loading.set(false); },
       error: () => this.loading.set(false),
     });
