@@ -62,6 +62,7 @@ async function fetchAndCacheRates() {
     if (!rates || !rates.length) return;
 
     for (const r of rates) {
+      await execute(`DELETE FROM gold_prices WHERE code = $1`, [r.code]);
       await execute(
         `INSERT INTO gold_prices (code, name, vendor_name, buy_price, sell_price, trend, unit)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
@@ -98,16 +99,7 @@ async function fetchAndCacheChart(code) {
 }
 
 async function getLatestRates() {
-  return query(`
-    SELECT g.*
-    FROM gold_prices g
-    INNER JOIN (
-      SELECT code, MAX(fetched_at) AS max_at
-      FROM gold_prices
-      GROUP BY code
-    ) latest ON g.code = latest.code AND g.fetched_at = latest.max_at
-    ORDER BY g.name
-  `);
+  return query(`SELECT * FROM gold_prices ORDER BY name`);
 }
 
 async function getCachedChart(code) {
