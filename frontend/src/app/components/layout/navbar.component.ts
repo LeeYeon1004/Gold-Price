@@ -1,4 +1,4 @@
-import { Component, ElementRef, HostListener, inject, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, ViewChild, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -14,10 +14,21 @@ import { MemberService } from '../../services/member.service';
 export class NavbarComponent {
   auth = inject(AuthService);
   memberSvc = inject(MemberService);
-  private el = inject(ElementRef);
+
+  @ViewChild('memberBtn') memberBtn?: ElementRef;
+  @ViewChild('memberDropdown') memberDropdown?: ElementRef;
 
   mobileOpen = signal(false);
   memberMenuOpen = signal(false);
+
+  @HostListener('document:click', ['$event'])
+  onDocClick(e: MouseEvent) {
+    if (!this.memberMenuOpen()) return;
+    const target = e.target as Node;
+    const inBtn = this.memberBtn?.nativeElement?.contains(target);
+    const inDropdown = this.memberDropdown?.nativeElement?.contains(target);
+    if (!inBtn && !inDropdown) this.closeMenu();
+  }
 
   // Add member
   showAddMember = signal(false);
@@ -28,13 +39,6 @@ export class NavbarComponent {
   editingMemberId = signal<number | null>(null);
   editingMemberName = signal('');
   renamingMember = signal(false);
-
-  @HostListener('document:click', ['$event'])
-  onDocClick(e: MouseEvent) {
-    if (this.memberMenuOpen() && !this.el.nativeElement.contains(e.target as Node)) {
-      this.closeMenu();
-    }
-  }
 
   toggleMemberMenu(e: MouseEvent) {
     e.stopPropagation();

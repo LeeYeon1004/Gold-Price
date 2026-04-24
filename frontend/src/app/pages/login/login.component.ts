@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -10,9 +10,15 @@ import { AuthService } from '../../services/auth.service';
   imports: [CommonModule, FormsModule],
   templateUrl: './login.component.html',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   private auth = inject(AuthService);
   private router = inject(Router);
+
+  ngOnInit() {
+    if (this.auth.isLoggedIn()) {
+      this.router.navigate(['/']);
+    }
+  }
 
   username = '';
   password = '';
@@ -46,7 +52,7 @@ export class LoginComponent {
       : this.auth.login(normalizedUsername, this.password);
 
     req.subscribe({
-      next: () => this.router.navigate(['/portfolio']),
+      next: () => this.router.navigate(['/']),
       error: err => {
         this.error.set(err.error?.error ?? 'An error occurred, please try again');
         this.loading.set(false);

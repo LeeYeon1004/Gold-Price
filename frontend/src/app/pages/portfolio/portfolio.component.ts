@@ -80,7 +80,6 @@ export class PortfolioComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngOnInit() {
     if (this.auth.isLoggedIn()) {
-      this.memberSvc.load();
       this.ratesService.ensureLoaded();
     }
   }

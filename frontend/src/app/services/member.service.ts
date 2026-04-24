@@ -17,7 +17,13 @@ export class MemberService {
   load() {
     this.api.getMembers().subscribe({
       next: res => {
-        this.members.set(res.data);
+        const sorted = [...(res.data ?? [])].sort((a, b) =>
+          a.name.localeCompare(b.name, 'vi', { sensitivity: 'base' })
+        );
+        this.members.set(sorted);
+        if (this.activeMemberId() === null && sorted.length > 0) {
+          this.activeMemberId.set(sorted[0].id);
+        }
       },
       error: () => {},
     });

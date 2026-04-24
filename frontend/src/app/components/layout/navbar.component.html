@@ -28,7 +28,7 @@
 
           <!-- ── Desktop member switcher ── -->
           <div class="relative hidden sm:block">
-            <button (click)="toggleMemberMenu($event)"
+            <button #memberBtn (click)="toggleMemberMenu($event)"
               class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm border transition-all"
               [class]="memberSvc.activeMemberId() ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-slate-200 bg-white text-slate-600 hover:border-slate-300'">
               <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -41,8 +41,7 @@
             </button>
 
             @if (memberMenuOpen()) {
-              <div class="absolute right-0 mt-1 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 py-1 animate-fade-in"
-                   (click)="$event.stopPropagation()">
+              <div #memberDropdown class="absolute right-0 mt-1 w-60 bg-white rounded-2xl shadow-xl border border-slate-200 z-50 py-1 animate-fade-in">
 
 
 
