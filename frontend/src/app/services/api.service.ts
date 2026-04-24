@@ -50,6 +50,10 @@ export class ApiService {
     return this.http.post<any>(`${this.base}/members`, { name }, { headers: this.authHeader() });
   }
 
+  renameMember(id: number, name: string): Observable<any> {
+    return this.http.put(`${this.base}/members/${id}`, { name }, { headers: this.authHeader() });
+  }
+
   deleteMember(id: number): Observable<any> {
     return this.http.delete(`${this.base}/members/${id}`, { headers: this.authHeader() });
   }

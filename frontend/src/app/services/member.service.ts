@@ -29,6 +29,10 @@ export class MemberService {
     return this.api.addMember(name);
   }
 
+  renameMember(id: number, name: string) {
+    return this.api.renameMember(id, name);
+  }
+
   deleteMember(id: number) {
     return this.api.deleteMember(id);
   }

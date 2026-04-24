@@ -35,6 +35,23 @@ router.post('/', async (req, res) => {
   }
 });
 
+// PUT /api/members/:id — rename a member
+router.put('/:id', async (req, res) => {
+  const name = req.body.name?.trim();
+  if (!name) return res.status(400).json({ error: 'name is required' });
+  try {
+    const result = await execute(
+      'UPDATE members SET name = $1 WHERE id = $2 AND owner_id = $3',
+      [name, req.params.id, req.user.id]
+    );
+    if (!result.rowCount) return res.status(404).json({ error: 'Not found' });
+    res.json({ message: 'Renamed successfully' });
+  } catch (err) {
+    console.error('[Members] PUT error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // DELETE /api/members/:id — remove a member (also removes their portfolio entries via CASCADE)
 router.delete('/:id', async (req, res) => {
   try {
