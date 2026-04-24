@@ -53,6 +53,7 @@ export interface PortfolioSummary {
 export interface User {
   id: number;
   username: string;
+  display_name?: string;
 }
 
 export interface Member {

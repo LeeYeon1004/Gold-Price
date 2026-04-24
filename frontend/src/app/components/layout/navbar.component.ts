@@ -87,6 +87,7 @@ export class NavbarComponent {
     const name = this.editingMemberName().trim();
     if (!id || !name) return;
     this.renamingMember.set(true);
+
     this.memberSvc.renameMember(id, name).subscribe({
       next: () => {
         this.memberSvc.load();

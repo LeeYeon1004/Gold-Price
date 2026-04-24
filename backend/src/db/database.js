@@ -208,6 +208,7 @@ async function migrate() {
     `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS market_price_at_sell REAL`,
     `ALTER TABLE portfolio ADD COLUMN IF NOT EXISTS member_id INTEGER REFERENCES members(id) ON DELETE SET NULL`,
     `CREATE TABLE IF NOT EXISTS members (id SERIAL PRIMARY KEY, owner_id INTEGER NOT NULL, name TEXT NOT NULL, created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE)`,
+    `ALTER TABLE users ADD COLUMN IF NOT EXISTS display_name TEXT`,
   ];
   const sqliteMigrations = [
     `ALTER TABLE portfolio ADD COLUMN sell_price REAL`,
@@ -215,6 +216,7 @@ async function migrate() {
     `ALTER TABLE portfolio ADD COLUMN market_price_at_sell REAL`,
     `CREATE TABLE IF NOT EXISTS members (id INTEGER PRIMARY KEY AUTOINCREMENT, owner_id INTEGER NOT NULL, name TEXT NOT NULL, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE)`,
     `ALTER TABLE portfolio ADD COLUMN member_id INTEGER REFERENCES members(id) ON DELETE SET NULL`,
+    `ALTER TABLE users ADD COLUMN display_name TEXT`,
   ];
 
   if (isPg) {

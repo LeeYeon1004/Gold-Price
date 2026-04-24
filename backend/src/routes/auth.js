@@ -21,8 +21,16 @@ router.post('/register', async (req, res) => {
       'INSERT INTO users (username, password) VALUES ($1, $2) RETURNING id',
       [username, hashed]
     );
-    const token = signToken({ id: result.insertId, username });
-    res.json({ token, user: { id: result.insertId, username } });
+    const userId = result.insertId;
+
+    // Create default member
+    await execute(
+      'INSERT INTO members (owner_id, name) VALUES ($1, $2)',
+      [userId, 'Main Portfolio']
+    );
+
+    const token = signToken({ id: userId, username });
+    res.json({ token, user: { id: userId, username, display_name: null } });
   } catch (err) {
     console.error('[Auth] Register error:', err.message);
     res.status(500).json({ error: err.message });
@@ -42,15 +50,31 @@ router.post('/login', async (req, res) => {
     if (!ok) return res.status(401).json({ error: 'Incorrect username or password' });
 
     const token = signToken({ id: user.id, username: user.username });
-    res.json({ token, user: { id: user.id, username: user.username } });
+    res.json({ token, user: { id: user.id, username: user.username, display_name: user.display_name } });
   } catch (err) {
     console.error('[Auth] Login error:', err.message);
     res.status(500).json({ error: err.message });
   }
 });
 
-router.get('/me', authMiddleware, (req, res) => {
-  res.json({ user: req.user });
+router.get('/me', authMiddleware, async (req, res) => {
+  try {
+    const user = await queryOne('SELECT id, username, display_name FROM users WHERE id = $1', [req.user.id]);
+    res.json({ user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.put('/profile', authMiddleware, async (req, res) => {
+  const display_name = req.body.display_name?.trim() || null;
+  try {
+    await execute('UPDATE users SET display_name = $1 WHERE id = $2', [display_name, req.user.id]);
+    res.json({ message: 'Profile updated' });
+  } catch (err) {
+    console.error('[Auth] Profile update error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
 });
 
 module.exports = router;

@@ -38,6 +38,18 @@ export class AuthService {
     this._user.set(user);
   }
 
+  updateProfile(displayName: string) {
+    return this.api.updateProfile(displayName).pipe(
+      tap(() => {
+        const u = this._user();
+        if (u) {
+          const updated = { ...u, display_name: displayName };
+          this.saveSession(localStorage.getItem('token') || '', updated);
+        }
+      })
+    );
+  }
+
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');

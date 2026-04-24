@@ -41,6 +41,10 @@ export class ApiService {
     return this.http.get<any>(`${this.base}/auth/me`, { headers: this.authHeader() });
   }
 
+  updateProfile(display_name: string): Observable<any> {
+    return this.http.put(`${this.base}/auth/profile`, { display_name }, { headers: this.authHeader() });
+  }
+
   // --- Members ---
   getMembers(): Observable<{ data: Member[] }> {
     return this.http.get<any>(`${this.base}/members`, { headers: this.authHeader() });

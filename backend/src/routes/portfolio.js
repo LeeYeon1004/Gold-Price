@@ -15,16 +15,22 @@ async function verifyMember(memberId, userId) {
 // GET /api/portfolio — list holdings. Pass ?member_id=X to view a member's data.
 router.get('/', async (req, res) => {
   try {
-    const memberId = req.query.member_id ? Number(req.query.member_id) : null;
+    let memberId = req.query.member_id ? Number(req.query.member_id) : null;
 
-    if (memberId) {
+    if (!memberId) {
+      // Fallback to first member
+      const firstMember = await queryOne('SELECT id FROM members WHERE owner_id = $1 ORDER BY id ASC LIMIT 1', [req.user.id]);
+      if (firstMember) {
+        memberId = firstMember.id;
+      }
+    } else {
       const member = await verifyMember(memberId, req.user.id);
       if (!member) return res.status(404).json({ error: 'Member not found' });
     }
 
     const items = memberId
       ? await query('SELECT * FROM portfolio WHERE user_id = $1 AND member_id = $2 ORDER BY buy_date DESC', [req.user.id, memberId])
-      : await query('SELECT * FROM portfolio WHERE user_id = $1 AND member_id IS NULL ORDER BY buy_date DESC', [req.user.id]);
+      : []; // Return empty if no member at all
 
     const rates = await getLatestRates();
     const rateMap = {};
@@ -63,14 +69,19 @@ router.post('/', async (req, res) => {
     return res.status(400).json({ error: 'quantity and buy_price must be positive' });
 
   try {
-    if (member_id) {
-      const member = await verifyMember(member_id, req.user.id);
+    let finalMemberId = member_id;
+    if (!finalMemberId) {
+      const firstMember = await queryOne('SELECT id FROM members WHERE owner_id = $1 ORDER BY id ASC LIMIT 1', [req.user.id]);
+      if (!firstMember) return res.status(400).json({ error: 'User must have at least one member' });
+      finalMemberId = firstMember.id;
+    } else {
+      const member = await verifyMember(finalMemberId, req.user.id);
       if (!member) return res.status(404).json({ error: 'Member not found' });
     }
 
     const result = await execute(
       'INSERT INTO portfolio (user_id, code, quantity, buy_price, buy_date, note, member_id) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id',
-      [req.user.id, code || 'SJC9999', quantity, buy_price, buy_date, note || '', member_id || null]
+      [req.user.id, code || 'SJC9999', quantity, buy_price, buy_date, note || '', finalMemberId]
     );
     res.json({ id: result.insertId, message: 'Added successfully' });
   } catch (err) {

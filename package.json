@@ -5,7 +5,9 @@
   "scripts": {
     "install": "npm --prefix backend install && npm --prefix frontend install",
     "build": "npm --prefix frontend run build",
-    "start": "FRONTEND_DIST=frontend/dist/frontend/browser node backend/src/app.js"
+    "start": "FRONTEND_DIST=frontend/dist/frontend/browser node backend/src/app.js",
+    "kill:backend": "npx kill-port 3000",
+    "kill:frontend": "npx kill-port 4200"
   },
   "engines": {
     "node": ">=20.0.0"

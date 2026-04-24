@@ -16,7 +16,13 @@ export class MemberService {
 
   load() {
     this.api.getMembers().subscribe({
-      next: res => this.members.set(res.data),
+      next: res => {
+        this.members.set(res.data);
+        // Auto-select first if none active
+        if (!this.activeMemberId() && res.data.length > 0) {
+          this.setActive(res.data[0].id);
+        }
+      },
       error: () => {},
     });
   }
