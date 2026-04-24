@@ -145,7 +145,7 @@
 
   <!-- ── Mobile menu ── -->
   @if (mobileOpen()) {
-    <div class="sm:hidden border-t border-slate-200 bg-slate-50 animate-fade-in">
+    <div class="absolute top-full left-0 w-full sm:hidden border-t border-slate-200 bg-slate-50 shadow-lg animate-fade-in max-h-[calc(100vh-4rem)] overflow-y-auto">
       <div class="px-4 py-3 space-y-1">
 
         <!-- Nav links -->
@@ -238,7 +238,7 @@
               </div>
               <span class="text-sm text-slate-600 font-medium">{{ auth.user()?.username }}</span>
             </div>
-            <button (click)="auth.logout()" class="text-sm text-red-500 hover:text-red-600 font-medium">Logout</button>
+            <button (click)="auth.logout(); mobileOpen.set(false)" class="text-sm text-red-500 hover:text-red-600 font-medium">Logout</button>
           </div>
         }
       </div>
