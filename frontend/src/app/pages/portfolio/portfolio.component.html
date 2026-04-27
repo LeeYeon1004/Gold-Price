@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6 animate-fade-in">
+<div class="flex flex-col flex-1 min-h-0 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 gap-6 animate-fade-in">
 
   <!-- Not logged in -->
   @if (!auth.isLoggedIn()) {
@@ -13,7 +13,7 @@
   @if (auth.isLoggedIn()) {
     <!-- Summary cards -->
     @if (computedSummary(); as s) {
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="shrink-0 grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div class="card-sm animate-slide-up relative overflow-hidden border-2"
              [class.border-blue-500]="selectedIds().size > 0"
              [class.border-slate-200]="selectedIds().size === 0">
@@ -69,20 +69,19 @@
     }
 
     <!-- ─── Desktop layout ─── -->
-    <div class="hidden lg:grid grid-cols-3 gap-6 items-start">
-      <!-- Form card (desktop): natural height, reference for right panel -->
-      <div #formCard class="card col-span-1">
+    <div class="hidden lg:flex lg:flex-1 lg:min-h-0 gap-6">
+      <!-- Form card: fixed width, header sticky, body scrolls -->
+      <div class="card w-96 shrink-0 flex flex-col min-h-0">
         <ng-container *ngTemplateOutlet="formContent"></ng-container>
       </div>
-      <!-- List (desktop): capped at form height, scrolls internally -->
-      <div class="card col-span-2 flex flex-col overflow-hidden"
-           [style.maxHeight]="listMaxH() ? listMaxH() + 'px' : null">
+      <!-- List card: fills remaining width & height, scrolls inside -->
+      <div class="card flex-1 flex flex-col min-h-0">
         <ng-container *ngTemplateOutlet="listContent"></ng-container>
       </div>
     </div>
 
     <!-- ─── Tablet / Mobile layout ─── -->
-    <div class="lg:hidden space-y-6">
+    <div class="lg:hidden space-y-6 overflow-y-auto scroll-hover pr-3 flex-1 min-h-0">
       <!-- List first on mobile -->
       <div class="card">
         <ng-container *ngTemplateOutlet="listContent"></ng-container>
@@ -161,10 +160,10 @@
 
 <!-- Form template -->
 <ng-template #formContent>
-  <h2 class="hidden lg:block text-base font-semibold text-slate-900 mb-4">
+  <h2 class="hidden lg:block text-base font-semibold text-slate-900 mb-4 shrink-0">
     {{ editId() ? 'Edit Transaction' : 'Add Transaction' }}
   </h2>
-  <form (ngSubmit)="submit()" class="space-y-3" autocomplete="off">
+  <form (ngSubmit)="submit()" class="space-y-3 flex-1 min-h-0 overflow-y-auto scroll-hover pr-3" autocomplete="off">
     <div>
       <label class="text-xs text-slate-600 mb-1 block">Product</label>
       <select [ngModel]="form.code" (ngModelChange)="onProductChange($event)" name="code" class="input-field text-sm">
@@ -251,7 +250,7 @@
     </div>
   </div>
 
-  <div class="overflow-y-auto flex-1 min-h-0 -mr-2 pr-2">
+  <div class="flex-1 min-h-0 overflow-y-auto scroll-hover pr-3">
   @if (loading()) {
     <div class="space-y-3">
       @for (i of [1,2,3]; track i) {
@@ -297,7 +296,9 @@
               </div>
               <div class="min-w-0">
                 <p class="font-semibold text-slate-900 text-sm truncate">{{ getProductName(item.code) }}</p>
-                <p class="text-xs text-slate-400 mt-0.5">{{ item.buy_date | slice:0:10 }} · {{ item.quantity }} units</p>
+                @if (item.note) {
+                  <p class="text-xs text-slate-400 italic mt-0.5 truncate">{{ item.note }}</p>
+                }
               </div>
             </div>
             <!-- Edit / Delete actions -->
@@ -314,31 +315,72 @@
           </div>
 
           <!-- Row 2: price data -->
-          <div class="mt-2.5 pl-6 sm:pl-7 grid grid-cols-2 sm:grid-cols-4 gap-x-3 gap-y-1 text-xs">
-            <div class="space-y-0.5">
-              <p class="text-slate-400">Buy price</p>
-              <p class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</p>
+          <div class="mt-2.5 pl-6 sm:pl-7 text-xs">
+
+            <!-- Mobile layout: inline label-value rows -->
+            <div class="sm:hidden rounded-xl border border-slate-200 overflow-hidden">
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Buy date</span>
+                <span class="text-slate-600 font-medium tabular-nums">{{ item.buy_date | slice:0:10 }}</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Qty</span>
+                <span class="text-slate-600 font-medium">{{ item.quantity }}</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Buy price</span>
+                <span class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Total cost</span>
+                <span class="text-slate-700 font-semibold tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-3' }}M</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Buy-back price</span>
+                <span class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
+                <span class="text-slate-400 shrink-0">Current value</span>
+                <span class="text-blue-700 font-semibold tabular-nums">{{ item.current_value / 1_000_000 | number:'1.0-3' }}M</span>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2">
+                <span class="text-slate-400 shrink-0">P&amp;L</span>
+                <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                  {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.0-3' }}M
+                  <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
+                </span>
+              </div>
             </div>
-            <div class="space-y-0.5">
-              <p class="text-slate-400">Buy-back price</p>
-              <p class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</p>
+
+            <!-- Desktop layout: table -->
+            <div class="hidden sm:block rounded-xl border border-slate-200 overflow-hidden">
+              <div class="grid bg-slate-50 border-b border-slate-200 text-slate-400 text-center" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
+                <div class="px-2 py-1.5">Buy date</div>
+                <div class="px-2 py-1.5">Qty</div>
+                <div class="px-2 py-1.5">Buy price</div>
+                <div class="px-2 py-1.5">Total cost</div>
+                <div class="px-2 py-1.5">Buy-back price</div>
+                <div class="px-2 py-1.5">Current value</div>
+              </div>
+              <div class="grid text-center" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
+                <div class="px-2 py-2 text-slate-500 tabular-nums whitespace-nowrap">{{ item.buy_date | slice:0:10 }}</div>
+                <div class="px-2 py-2 text-slate-500">{{ item.quantity }}</div>
+                <div class="px-2 py-2 text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1_000_000 | number:'1.0-3' }}M</div>
+                <div class="px-2 py-2 text-slate-700 font-semibold tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-3' }}M</div>
+                <div class="px-2 py-2 text-blue-700 font-medium tabular-nums">{{ item.current_price / 1_000_000 | number:'1.0-3' }}M</div>
+                <div class="px-2 py-2 text-blue-700 font-semibold tabular-nums">{{ item.current_value / 1_000_000 | number:'1.0-3' }}M</div>
+              </div>
+              <div class="flex items-center justify-between px-3 py-2 border-t border-slate-100">
+                <span class="text-slate-400">P&amp;L</span>
+                <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                  {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.0-3' }}M
+                  <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
+                </span>
+              </div>
             </div>
-            <div class="space-y-0.5">
-              <p class="text-slate-400">Cost</p>
-              <p class="text-slate-700 font-medium tabular-nums">{{ item.cost_basis / 1_000_000 | number:'1.0-3' }}M</p>
-            </div>
-            <div class="space-y-0.5">
-              <p class="text-slate-400">P&amp;L</p>
-              <p class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1_000_000 | number:'1.0-3' }}M
-                <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
-              </p>
-            </div>
+
           </div>
 
-          @if (item.note) {
-            <p class="text-xs text-slate-400 italic mt-1.5 pl-6 sm:pl-7">{{ item.note }}</p>
-          }
         </div>
       }
     </div>

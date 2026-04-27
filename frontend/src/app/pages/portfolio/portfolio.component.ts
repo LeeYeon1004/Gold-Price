@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, OnDestroy, inject, signal, computed, effect, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -23,15 +23,11 @@ interface AddForm {
   imports: [CommonModule, FormsModule, RouterLink, FlatpickrDirective],
   templateUrl: './portfolio.component.html',
 })
-export class PortfolioComponent implements OnInit, AfterViewInit, OnDestroy {
+export class PortfolioComponent implements OnInit, OnDestroy {
   private api = inject(ApiService);
   auth = inject(AuthService);
   ratesService = inject(RatesService);
   memberSvc = inject(MemberService);
-
-  @ViewChild('formCard') formCard!: ElementRef<HTMLElement>;
-  listMaxH = signal<number | null>(null);
-  private ro: ResizeObserver | null = null;
 
   constructor() {
     effect(() => {
@@ -84,15 +80,7 @@ export class PortfolioComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
-  ngAfterViewInit() {
-    this.ro = new ResizeObserver(() => {
-      this.listMaxH.set(this.formCard.nativeElement.offsetHeight);
-    });
-    this.ro.observe(this.formCard.nativeElement);
-  }
-
   ngOnDestroy() {
-    this.ro?.disconnect();
     document.body.style.overflow = '';
   }
 

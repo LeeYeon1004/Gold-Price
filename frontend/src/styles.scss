@@ -7,9 +7,9 @@
 
 @layer base {
   html { scroll-behavior: smooth; }
+  html, body { height: 100%; }
   body {
     @apply bg-slate-50 text-slate-900 font-sans antialiased;
-    min-height: 100vh;
   }
 }
 
@@ -59,11 +59,17 @@
 .highcharts-background { fill: transparent !important; }
 .highcharts-plot-background { fill: transparent !important; }
 
-/* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: #f8fafc; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+/* Scrollbar — hidden by default, visible on hover/scroll */
+.scroll-hover {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+.scroll-hover::-webkit-scrollbar { width: 6px; height: 6px; }
+.scroll-hover::-webkit-scrollbar-track { background: transparent; }
+.scroll-hover::-webkit-scrollbar-thumb { background: transparent; border-radius: 9999px; transition: background 0.15s; }
+.scroll-hover:hover { scrollbar-color: #cbd5e1 transparent; }
+.scroll-hover:hover::-webkit-scrollbar-thumb { background: #cbd5e1; }
+.scroll-hover::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
 /* Animations */
 .animate-fade-in { animation: fadeIn 0.4s ease-in-out; }
@@ -98,6 +104,14 @@
   0%   { width: 0%;   margin-left: 0%; }
   50%  { width: 75%;  margin-left: 10%; }
   100% { width: 0%;   margin-left: 100%; }
+}
+
+/* ─── Full-height layout ────────────────────────────────────────────────────── */
+main > *:not(router-outlet) {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
 }
 
 /* ─── Mobile fixes ─────────────────────────────────────────────────────────── */
