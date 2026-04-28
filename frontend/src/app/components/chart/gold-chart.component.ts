@@ -16,34 +16,15 @@ export class GoldChartComponent implements OnChanges {
   @Input() dataPoints: ChartDataPoint[] = [];
   @Input() loading = false;
 
-  activePeriod: Period = '1m';
   chartOptions: Highcharts.Options = {};
   hasData = false;
-
-  periods = [
-    { value: '1w' as Period, label: '1W' },
-    { value: '1m' as Period, label: '1M' },
-    { value: '3m' as Period, label: '3M' },
-    { value: '6m' as Period, label: '6M' },
-  ];
 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['dataPoints']) this.buildChart();
   }
 
-  setPeriod(p: Period) {
-    this.activePeriod = p;
-    this.buildChart();
-  }
-
-  private filterByPeriod(points: ChartDataPoint[]): ChartDataPoint[] {
-    if (!points.length) return points;
-    const days = { '1w': 7, '1m': 30, '3m': 90, '6m': 180 }[this.activePeriod];
-    return points.slice(-days);
-  }
-
   private buildChart() {
-    const filtered = this.filterByPeriod(this.dataPoints);
+    const filtered = this.dataPoints;
     this.hasData = filtered.length > 0;
     if (!this.hasData) return;
 

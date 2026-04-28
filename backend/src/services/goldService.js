@@ -24,11 +24,16 @@ const GOLD_RATES_QUERY = `
   }
 `;
 
-function buildChartQuery(code) {
+function buildChartQuery(code, fromDate, toDate, maxDays) {
   const targetCode = code || 'SJC9999';
+  let args = `code: "${targetCode}"`;
+  if (fromDate) args += `, from_date: "${fromDate}"`;
+  if (toDate) args += `, to_date: "${toDate}"`;
+  if (maxDays) args += `, max_days: ${maxDays}`;
+
   return `
     query {
-      goldChartData(code: "${targetCode}") {
+      goldChartData(${args}) {
         data_points { date buy sell }
         default_product
         product_options { value label }
@@ -78,18 +83,21 @@ async function fetchAndCacheRates() {
   }
 }
 
-async function fetchAndCacheChart(code) {
+async function fetchAndCacheChart(code, fromDate, toDate, maxDays) {
   try {
-    const data      = await fetchFromGraphQL(buildChartQuery(code));
+    const data      = await fetchFromGraphQL(buildChartQuery(code, fromDate, toDate, maxDays));
     const chartData = data.goldChartData;
     if (!chartData) return null;
 
-    await execute(
-      `INSERT INTO gold_chart_cache (code, data, fetched_at)
-       VALUES ($1, $2, CURRENT_TIMESTAMP)
-       ON CONFLICT(code) DO UPDATE SET data = EXCLUDED.data, fetched_at = CURRENT_TIMESTAMP`,
-      [code || 'ALL', JSON.stringify(chartData)]
-    );
+    // Only cache if it's the default query (no custom dates/max_days)
+    if (!fromDate && !toDate && !maxDays) {
+      await execute(
+        `INSERT INTO gold_chart_cache (code, data, fetched_at)
+         VALUES ($1, $2, CURRENT_TIMESTAMP)
+         ON CONFLICT(code) DO UPDATE SET data = EXCLUDED.data, fetched_at = CURRENT_TIMESTAMP`,
+        [code || 'ALL', JSON.stringify(chartData)]
+      );
+    }
 
     return chartData;
   } catch (err) {

@@ -19,9 +19,10 @@ export class ApiService {
     return this.http.get<any>(`${this.base}/gold/rates`);
   }
 
-  getChart(code?: string): Observable<{ data: GoldChartData }> {
-    const params = code ? `?code=${code}` : '';
-    return this.http.get<any>(`${this.base}/gold/chart${params}`);
+  getChart(code?: string, maxDays?: number): Observable<{ data: GoldChartData }> {
+    let params = code ? `?code=${code}` : '?';
+    if (maxDays) params += `&max_days=${maxDays}`;
+    return this.http.get<any>(`${this.base}/gold/chart${params.replace('?&', '?')}`);
   }
 
   refreshRates(): Observable<any> {

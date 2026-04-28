@@ -47,10 +47,10 @@
     }
 
     <!-- ── Two-column layout: Holding | Sold ── -->
-    <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
+    <div class="flex-1 lg:min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
       <!-- Holding -->
-      <div class="card flex flex-col min-h-0">
+      <div class="card flex flex-col h-[500px] lg:h-auto lg:min-h-0">
         <div class="flex items-center justify-between mb-4 shrink-0">
           <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
@@ -82,64 +82,32 @@
                     Mark Sold
                   </button>
                 </div>
-                <!-- Price table: mobile -->
-                <div class="sm:hidden rounded-xl border border-slate-200 overflow-hidden text-xs">
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Buy date</span>
-                    <span class="text-slate-600 font-medium tabular-nums">{{ item.buy_date | slice:0:10 }}</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Qty</span>
-                    <span class="text-slate-600 font-medium">{{ item.quantity }}</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Buy price</span>
-                    <span class="text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Total cost</span>
-                    <span class="text-slate-700 font-semibold tabular-nums">{{ item.cost_basis / 1000000 | number:'1.0-3' }}M</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Buy-back price</span>
-                    <span class="text-blue-700 font-medium tabular-nums">{{ item.current_price / 1000000 | number:'1.0-3' }}M</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-b border-slate-100">
-                    <span class="text-slate-400 shrink-0">Current value</span>
-                    <span class="text-blue-700 font-semibold tabular-nums">{{ item.current_value / 1000000 | number:'1.0-3' }}M</span>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2">
-                    <span class="text-slate-400 shrink-0">Unrealised P&amp;L</span>
-                    <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                      {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1000000 | number:'1.0-3' }}M
-                      <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
-                    </span>
-                  </div>
-                </div>
-                <!-- Price table: desktop -->
-                <div class="hidden sm:block rounded-xl border border-slate-200 overflow-hidden text-xs">
-                  <div class="grid bg-white border-b border-slate-200 text-slate-400 text-center" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
-                    <div class="px-2 py-1.5">Buy date</div>
-                    <div class="px-2 py-1.5">Qty</div>
-                    <div class="px-2 py-1.5">Buy price</div>
-                    <div class="px-2 py-1.5">Total cost</div>
-                    <div class="px-2 py-1.5">Buy-back price</div>
-                    <div class="px-2 py-1.5">Current value</div>
-                  </div>
-                  <div class="grid text-center bg-slate-50" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
-                    <div class="px-2 py-2 text-slate-500 tabular-nums whitespace-nowrap">{{ item.buy_date | slice:0:10 }}</div>
-                    <div class="px-2 py-2 text-slate-500">{{ item.quantity }}</div>
-                    <div class="px-2 py-2 text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</div>
-                    <div class="px-2 py-2 text-slate-700 font-semibold tabular-nums">{{ item.cost_basis / 1000000 | number:'1.0-3' }}M</div>
-                    <div class="px-2 py-2 text-blue-700 font-medium tabular-nums">{{ item.current_price / 1000000 | number:'1.0-3' }}M</div>
-                    <div class="px-2 py-2 text-blue-700 font-semibold tabular-nums">{{ item.current_value / 1000000 | number:'1.0-3' }}M</div>
-                  </div>
-                  <div class="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50">
-                    <span class="text-slate-400">Unrealised P&amp;L</span>
-                    <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                      {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1000000 | number:'1.0-3' }}M
-                      <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
-                    </span>
+                <!-- Price table: unified -->
+                <div class="overflow-x-auto">
+                  <div class="min-w-[600px] rounded-xl border border-slate-200 overflow-hidden text-xs">
+                    <div class="grid bg-white border-b border-slate-200 text-slate-400 text-center" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
+                      <div class="px-2 py-1.5">Buy date</div>
+                      <div class="px-2 py-1.5">Qty</div>
+                      <div class="px-2 py-1.5">Buy price</div>
+                      <div class="px-2 py-1.5">Total cost</div>
+                      <div class="px-2 py-1.5">Buy-back price</div>
+                      <div class="px-2 py-1.5">Current value</div>
+                    </div>
+                    <div class="grid text-center bg-slate-50" style="grid-template-columns: 6rem 2.5rem 1fr 1fr 1fr 1fr">
+                      <div class="px-2 py-2 text-slate-500 tabular-nums whitespace-nowrap">{{ item.buy_date | slice:0:10 }}</div>
+                      <div class="px-2 py-2 text-slate-500">{{ item.quantity }}</div>
+                      <div class="px-2 py-2 text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</div>
+                      <div class="px-2 py-2 text-slate-700 font-semibold tabular-nums">{{ item.cost_basis / 1000000 | number:'1.0-3' }}M</div>
+                      <div class="px-2 py-2 text-blue-700 font-medium tabular-nums">{{ item.current_price / 1000000 | number:'1.0-3' }}M</div>
+                      <div class="px-2 py-2 text-blue-700 font-semibold tabular-nums">{{ item.current_value / 1000000 | number:'1.0-3' }}M</div>
+                    </div>
+                    <div class="flex items-center justify-between px-3 py-2 border-t border-slate-100 bg-slate-50">
+                      <span class="text-slate-400">Unrealised P&amp;L</span>
+                      <span class="font-semibold tabular-nums" [class]="item.pnl >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                        {{ item.pnl >= 0 ? '+' : '' }}{{ item.pnl / 1000000 | number:'1.0-3' }}M
+                        <span class="font-normal">({{ item.pnl_pct >= 0 ? '+' : '' }}{{ item.pnl_pct | number:'1.1-1' }}%)</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -149,7 +117,7 @@
       </div>
 
       <!-- Sold -->
-      <div class="card flex flex-col min-h-0">
+      <div class="card flex flex-col h-[500px] lg:h-auto lg:min-h-0">
         <div class="flex items-center justify-between mb-4 shrink-0">
           <h2 class="text-base font-semibold text-slate-900 flex items-center gap-2">
             <span class="w-2.5 h-2.5 rounded-full bg-slate-400 inline-block"></span>
@@ -192,49 +160,51 @@
                   </button>
                 </div>
                 <!-- Price table -->
-                <div class="rounded-xl border overflow-hidden text-xs"
-                     [class]="pnl >= 0 ? 'border-emerald-200' : 'border-red-200'">
-                  <!-- Header row -->
-                  <div class="grid bg-white/60 border-b text-slate-400 text-center"
-                       [class]="pnl >= 0 ? 'border-emerald-100' : 'border-red-100'"
-                       [ngClass]="item.market_price_at_sell ? 'grid-cols-6' : 'grid-cols-4'">
-                    <div class="px-2 py-1.5">Buy date</div>
-                    <div class="px-2 py-1.5">Qty</div>
-                    <div class="px-2 py-1.5">Buy price</div>
-                    <div class="px-2 py-1.5">Sell price</div>
-                    @if (item.market_price_at_sell) {
-                      <div class="px-2 py-1.5">Market at sell</div>
-                      <div class="px-2 py-1.5">vs Market</div>
-                    }
-                  </div>
-                  <!-- Value row -->
-                  <div class="grid bg-white/40 text-center"
-                       [ngClass]="item.market_price_at_sell ? 'grid-cols-6' : 'grid-cols-4'">
-                    <div class="px-2 py-2 text-slate-500 tabular-nums">{{ item.buy_date | slice:0:10 }}</div>
-                    <div class="px-2 py-2 text-slate-500">{{ item.quantity }}</div>
-                    <div class="px-2 py-2 text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</div>
-                    <div class="px-2 py-2 font-semibold tabular-nums"
-                         [class]="(item.sell_price ?? 0) >= item.buy_price ? 'text-emerald-700' : 'text-red-600'">
-                      {{ (item.sell_price ?? 0) / 1000000 | number:'1.0-3' }}M
+                <div class="overflow-x-auto">
+                  <div class="min-w-[500px] rounded-xl border overflow-hidden text-xs"
+                       [class]="pnl >= 0 ? 'border-emerald-200' : 'border-red-200'">
+                    <!-- Header row -->
+                    <div class="grid bg-white/60 border-b text-slate-400 text-center"
+                         [class]="pnl >= 0 ? 'border-emerald-100' : 'border-red-100'"
+                         [ngClass]="item.market_price_at_sell ? 'grid-cols-6' : 'grid-cols-4'">
+                      <div class="px-2 py-1.5">Buy date</div>
+                      <div class="px-2 py-1.5">Qty</div>
+                      <div class="px-2 py-1.5">Buy price</div>
+                      <div class="px-2 py-1.5">Sell price</div>
+                      @if (item.market_price_at_sell) {
+                        <div class="px-2 py-1.5">Market at sell</div>
+                        <div class="px-2 py-1.5">vs Market</div>
+                      }
                     </div>
-                    @if (item.market_price_at_sell) {
-                      <div class="px-2 py-2 text-slate-600 font-medium tabular-nums">{{ item.market_price_at_sell / 1000000 | number:'1.0-3' }}M</div>
+                    <!-- Value row -->
+                    <div class="grid bg-white/40 text-center"
+                         [ngClass]="item.market_price_at_sell ? 'grid-cols-6' : 'grid-cols-4'">
+                      <div class="px-2 py-2 text-slate-500 tabular-nums whitespace-nowrap">{{ item.buy_date | slice:0:10 }}</div>
+                      <div class="px-2 py-2 text-slate-500">{{ item.quantity }}</div>
+                      <div class="px-2 py-2 text-slate-700 font-medium tabular-nums">{{ item.buy_price / 1000000 | number:'1.0-3' }}M</div>
                       <div class="px-2 py-2 font-semibold tabular-nums"
-                           [class]="vsMarket !== null && vsMarket >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                        @if (vsMarket !== null) {
-                          {{ vsMarket >= 0 ? '+' : '' }}{{ vsMarket / 1000000 | number:'1.0-3' }}M
-                        }
+                           [class]="(item.sell_price ?? 0) >= item.buy_price ? 'text-emerald-700' : 'text-red-600'">
+                        {{ (item.sell_price ?? 0) / 1000000 | number:'1.0-3' }}M
                       </div>
-                    }
-                  </div>
-                  <!-- P&L row -->
-                  <div class="flex items-center justify-between px-3 py-2 border-t bg-white/40"
-                       [class]="pnl >= 0 ? 'border-emerald-100' : 'border-red-100'">
-                    <span class="text-slate-400">Realised P&amp;L</span>
-                    <span class="font-semibold tabular-nums" [class]="pnlPct >= 0 ? 'text-emerald-700' : 'text-red-600'">
-                      {{ pnl >= 0 ? '+' : '' }}{{ pnl / 1000000 | number:'1.0-3' }}M
-                      <span class="font-normal">({{ pnlPct >= 0 ? '+' : '' }}{{ pnlPct | number:'1.2-2' }}%)</span>
-                    </span>
+                      @if (item.market_price_at_sell) {
+                        <div class="px-2 py-2 text-slate-600 font-medium tabular-nums">{{ item.market_price_at_sell / 1000000 | number:'1.0-3' }}M</div>
+                        <div class="px-2 py-2 font-semibold tabular-nums"
+                             [class]="vsMarket !== null && vsMarket >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                          @if (vsMarket !== null) {
+                            {{ vsMarket >= 0 ? '+' : '' }}{{ vsMarket / 1000000 | number:'1.0-3' }}M
+                          }
+                        </div>
+                      }
+                    </div>
+                    <!-- P&L row -->
+                    <div class="flex items-center justify-between px-3 py-2 border-t bg-white/40"
+                         [class]="pnl >= 0 ? 'border-emerald-100' : 'border-red-100'">
+                      <span class="text-slate-400">Realised P&amp;L</span>
+                      <span class="font-semibold tabular-nums" [class]="pnlPct >= 0 ? 'text-emerald-700' : 'text-red-600'">
+                        {{ pnl >= 0 ? '+' : '' }}{{ pnl / 1000000 | number:'1.0-3' }}M
+                        <span class="font-normal">({{ pnlPct >= 0 ? '+' : '' }}{{ pnlPct | number:'1.2-2' }}%)</span>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>

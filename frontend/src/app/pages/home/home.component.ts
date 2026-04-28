@@ -41,9 +41,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     return d.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
   }
 
-  loadChart(code?: string) {
+  activeCode: string | undefined;
+  activeMaxDays: number | undefined = 30; // default to 30 days based on the image
+
+  loadChart() {
     this.chartLoading.set(true);
-    this.api.getChart(code).subscribe({
+    this.api.getChart(this.activeCode, this.activeMaxDays).subscribe({
       next: res => {
         this.chartData.set(res.data?.data_points ?? []);
         if (res.data?.product_options) this.productOptions.set(res.data.product_options);
@@ -54,7 +57,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   onProductChange(event: Event) {
-    this.loadChart((event.target as HTMLSelectElement).value || undefined);
+    this.activeCode = (event.target as HTMLSelectElement).value || undefined;
+    this.loadChart();
+  }
+
+  setPeriod(days?: number) {
+    this.activeMaxDays = days;
+    this.loadChart();
   }
 
   refresh() {

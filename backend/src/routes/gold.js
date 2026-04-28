@@ -28,10 +28,16 @@ router.get('/rates', async (req, res) => {
   }
 });
 
-// GET /api/gold/chart?code=SJC9999 — historical chart data
+// GET /api/gold/chart?code=SJC9999&from_date=...
 router.get('/chart', async (req, res) => {
-  const { code } = req.query;
+  const { code, from_date, to_date, max_days } = req.query;
   try {
+    // If specific date filters are provided, bypass the cache
+    if (from_date || to_date || max_days) {
+      const fresh = await fetchAndCacheChart(code || null, from_date, to_date, max_days ? parseInt(max_days) : null);
+      return res.json({ data: fresh });
+    }
+
     const cached  = await getCachedChart(code || 'ALL');
     const staleMs = cached?.fetched_at
       ? Date.now() - new Date(cached.fetched_at).getTime()
@@ -44,8 +50,10 @@ router.get('/chart', async (req, res) => {
     res.json({ data: JSON.parse(cached.data) });
   } catch (err) {
     try {
-      const cached = await getCachedChart(code || 'ALL');
-      if (cached) return res.json({ data: JSON.parse(cached.data), cached: true });
+      if (!from_date && !to_date && !max_days) {
+        const cached = await getCachedChart(code || 'ALL');
+        if (cached) return res.json({ data: JSON.parse(cached.data), cached: true });
+      }
     } catch (_) {}
     res.status(500).json({ error: err.message });
   }
