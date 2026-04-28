@@ -4,8 +4,6 @@ import { HighchartsChartComponent } from 'highcharts-angular';
 import * as Highcharts from 'highcharts';
 import { ChartDataPoint } from '../../models/gold.model';
 
-type Period = '1w' | '1m' | '3m' | '6m';
-
 @Component({
   selector: 'app-gold-chart',
   standalone: true,
@@ -15,12 +13,15 @@ type Period = '1w' | '1m' | '3m' | '6m';
 export class GoldChartComponent implements OnChanges {
   @Input() dataPoints: ChartDataPoint[] = [];
   @Input() loading = false;
+  @Input() maxDays: number | undefined = 7;
 
   chartOptions: Highcharts.Options = {};
   hasData = false;
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['dataPoints']) this.buildChart();
+    if (changes['dataPoints'] || changes['maxDays']) {
+      this.buildChart();
+    }
   }
 
   private buildChart() {
@@ -32,6 +33,13 @@ export class GoldChartComponent implements OnChanges {
     const buyData = filtered.map(p => p.buy);
     const sellData = filtered.map(p => p.sell);
 
+    const allValues = [...buyData, ...sellData].filter(v => v > 0);
+    const dataMin = Math.min(...allValues);
+    const dataMax = Math.max(...allValues);
+    const padding = (dataMax - dataMin) * 0.05 || dataMax * 0.02;
+    const yMin = Math.floor((dataMin - padding) / 100_000) * 100_000;
+    const yMax = Math.ceil((dataMax + padding) / 100_000) * 100_000;
+
     this.chartOptions = {
       chart: {
         type: 'area',
@@ -42,12 +50,21 @@ export class GoldChartComponent implements OnChanges {
       title: { text: undefined },
       xAxis: {
         categories,
-        tickInterval: Math.max(1, Math.floor(filtered.length / 6)),
-        labels: { style: { color: '#6b7280', fontSize: '11px' } },
+        tickInterval: this.maxDays === 1 ? 4
+          : this.maxDays === 7 ? 1
+          : this.maxDays === 30 ? 3
+          : this.maxDays === 365 ? 30
+          : Math.max(1, Math.floor(filtered.length / 8)),
+        labels: { 
+          style: { color: '#6b7280', fontSize: '11px' },
+          rotation: 0
+        },
         lineColor: '#cbd5e1',
         tickColor: '#cbd5e1',
       },
       yAxis: {
+        min: yMin,
+        max: yMax,
         title: { text: undefined },
         labels: {
           style: { color: '#6b7280', fontSize: '11px' },
@@ -79,7 +96,7 @@ export class GoldChartComponent implements OnChanges {
       },
       plotOptions: {
         area: {
-          fillOpacity: 0.08,
+          fillOpacity: 0.12,
           lineWidth: 2,
           marker: { enabled: false, states: { hover: { enabled: true, radius: 4 } } },
         }
@@ -92,7 +109,7 @@ export class GoldChartComponent implements OnChanges {
           color: '#047857',
           fillColor: {
             linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [[0, 'rgba(4,120,87,0.15)'], [1, 'rgba(4,120,87,0)']]
+            stops: [[0, 'rgba(4,120,87,0.18)'], [1, 'rgba(4,120,87,0)']]
           },
         },
         {
@@ -102,19 +119,11 @@ export class GoldChartComponent implements OnChanges {
           color: '#1d4ed8',
           fillColor: {
             linearGradient: { x1: 0, y1: 0, x2: 0, y2: 1 },
-            stops: [[0, 'rgba(29,78,216,0.15)'], [1, 'rgba(29,78,216,0)']]
+            stops: [[0, 'rgba(29,78,216,0.18)'], [1, 'rgba(29,78,216,0)']]
           },
         },
       ],
-      credits: { enabled: false },
-      responsive: {
-        rules: [{
-          condition: { maxWidth: 480 },
-          chartOptions: {
-            xAxis: { tickInterval: Math.max(1, Math.floor(filtered.length / 4)) },
-          }
-        }]
-      }
+      credits: { enabled: false }
     };
   }
 }

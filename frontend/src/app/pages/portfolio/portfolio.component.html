@@ -163,7 +163,7 @@
   <h2 class="hidden lg:block text-base font-semibold text-slate-900 mb-4 shrink-0">
     {{ editId() ? 'Edit Transaction' : 'Add Transaction' }}
   </h2>
-  <form (ngSubmit)="submit()" class="space-y-3 flex-1 min-h-0 pr-3" autocomplete="off">
+  <form (ngSubmit)="submit()" class="space-y-3 flex-1 min-h-0 overflow-y-auto scroll-hover pr-3 pb-2" autocomplete="off">
     <div>
       <label class="text-xs text-slate-600 mb-1 block">Product</label>
       <select [ngModel]="form.code" (ngModelChange)="onProductChange($event)" name="code" class="input-field text-sm">

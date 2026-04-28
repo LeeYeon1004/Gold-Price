@@ -78,12 +78,12 @@
     </div>
 
     <div class="card xl:col-span-2 flex flex-col h-[480px] lg:h-auto lg:min-h-0">
-      <div class="shrink-0 flex items-center justify-between mb-4 flex-wrap gap-2">
-        <h2 class="text-base font-semibold text-slate-900">Price Chart</h2>
-        <div class="flex items-center gap-2">
+      <div class="shrink-0 flex items-center justify-between mb-4 gap-2">
+        <h2 class="text-base font-semibold text-slate-900 shrink-0">Price Chart</h2>
+        <div class="flex items-center gap-2 overflow-x-auto scroll-hover pb-1 max-w-full">
           @if (productOptions().length) {
             <select (change)="onProductChange($event)"
-              class="text-xs bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-500 max-w-[120px] sm:max-w-xs truncate">
+              class="text-xs bg-slate-100 border border-slate-300 text-slate-700 rounded-lg px-2 py-1 focus:outline-none focus:ring-1 focus:ring-amber-500 w-auto min-w-max">
               @for (opt of productOptions(); track opt.value) {
                 <option [value]="opt.value">{{ opt.label }}</option>
               }
@@ -92,14 +92,14 @@
         </div>
       </div>
       <!-- Horizontal Period Blocks -->
-      <div class="flex gap-2 flex-wrap mb-4 shrink-0">
-        <button (click)="setPeriod(1)" [class]="activeMaxDays === 1 ? 'btn-primary text-xs px-3 py-1.5' : 'btn-secondary text-xs px-3 py-1.5'">24h</button>
-        <button (click)="setPeriod(7)" [class]="activeMaxDays === 7 ? 'btn-primary text-xs px-3 py-1.5' : 'btn-secondary text-xs px-3 py-1.5'">7 Ngày</button>
-        <button (click)="setPeriod(30)" [class]="activeMaxDays === 30 ? 'btn-primary text-xs px-3 py-1.5' : 'btn-secondary text-xs px-3 py-1.5'">30 Ngày</button>
-        <button (click)="setPeriod(365)" [class]="activeMaxDays === 365 ? 'btn-primary text-xs px-3 py-1.5' : 'btn-secondary text-xs px-3 py-1.5'">1 Năm</button>
+      <div class="flex gap-2 mb-4 shrink-0 overflow-x-auto scroll-hover pb-1">
+        <button (click)="setPeriod(1)" [class]="activeMaxDays === 1 ? 'btn-primary focus:ring-0 text-xs px-3 py-1.5 shrink-0' : 'btn-secondary focus:ring-0 text-xs px-3 py-1.5 shrink-0'">24h</button>
+        <button (click)="setPeriod(7)" [class]="activeMaxDays === 7 ? 'btn-primary focus:ring-0 text-xs px-3 py-1.5 shrink-0' : 'btn-secondary focus:ring-0 text-xs px-3 py-1.5 shrink-0'">7 Ngày</button>
+        <button (click)="setPeriod(30)" [class]="activeMaxDays === 30 ? 'btn-primary focus:ring-0 text-xs px-3 py-1.5 shrink-0' : 'btn-secondary focus:ring-0 text-xs px-3 py-1.5 shrink-0'">30 Ngày</button>
+        <button (click)="setPeriod(365)" [class]="activeMaxDays === 365 ? 'btn-primary focus:ring-0 text-xs px-3 py-1.5 shrink-0' : 'btn-secondary focus:ring-0 text-xs px-3 py-1.5 shrink-0'">1 Năm</button>
       </div>
-      <div class="flex-1 min-h-0">
-        <app-gold-chart [dataPoints]="chartData()" [loading]="combinedLoading()"/>
+      <div class="flex-1 min-h-0 pb-1">
+        <app-gold-chart class="block h-full" [dataPoints]="chartData()" [loading]="combinedLoading()" [maxDays]="activeMaxDays"/>
       </div>
     </div>
   </div>
